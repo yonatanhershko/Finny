@@ -1,0 +1,25 @@
+#!/bin/sh
+# Stops secrets and env files from being committed.
+# Enabled with: git config core.hooksPath .githooks
+
+fail=0
+
+env_files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '(^|/)\.env(\..+)?$' | grep -v '\.example$')
+if [ -n "$env_files" ]; then
+  echo "pre-commit: env files staged, unstage them:"
+  echo "$env_files"
+  fail=1
+fi
+
+if git diff --cached -U0 --diff-filter=ACM -- . ':(exclude).claude/hooks' ':(exclude).githooks' \
+  | grep -E '^\+' \
+  | grep -Eq 'sb_secret_[A-Za-z0-9_-]{10,}|eyJ[A-Za-z0-9_-]{20,}\.eyJ[A-Za-z0-9_-]{20,}\.|-----BEGIN [A-Z ]*PRIVATE KEY-----'; then
+  echo "pre-commit: a secret key, JWT or private key is in the staged changes."
+  fail=1
+fi
+
+if [ "$fail" -ne 0 ]; then
+  echo "Commit blocked. See .claude/rules/security.md"
+  exit 1
+fi
+exit 0

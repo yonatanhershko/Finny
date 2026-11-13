@@ -1,0 +1,44 @@
+# deps
+node_modules/
+
+# env + secrets (only *.example is committed)
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.p8
+*.p12
+*.jks
+*.keystore
+google-services.json
+GoogleService-Info.plist
+
+# dev-only credentials
+supabase/seed/dev-users.local.md
+
+# expo / react native
+.expo/
+dist/
+web-build/
+apps/mobile/ios/
+apps/mobile/android/
+*.orig.*
+expo-env.d.ts
+
+# next
+.next/
+out/
+next-env.d.ts
+.vercel/
+
+# supabase local
+supabase/.branches/
+supabase/.temp/
+
+# misc
+.DS_Store
+*.log
+*.tsbuildinfo
+coverage/
+.claude/settings.local.json
