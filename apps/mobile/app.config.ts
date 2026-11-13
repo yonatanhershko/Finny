@@ -20,7 +20,6 @@ const config: ExpoConfig = {
   scheme: isProd ? 'finny' : 'finny-dev',
   userInterfaceStyle: 'automatic',
   ios: {
-    icon: './assets/expo.icon',
     bundleIdentifier: bundleId,
     supportsTablet: false,
   },
@@ -41,12 +40,13 @@ const config: ExpoConfig = {
   plugins: [
     'expo-router',
     'expo-secure-store',
+    ['expo-localization', { supportedLocales: { ios: ['he', 'en'], android: ['he', 'en'] } }],
     [
       'expo-splash-screen',
       {
         backgroundColor: '#F5F1E8',
         image: './assets/images/splash-icon.png',
-        imageWidth: 76,
+        imageWidth: 160,
       },
     ],
   ],
@@ -56,6 +56,7 @@ const config: ExpoConfig = {
   },
   extra: {
     appVariant: variant,
+    supportsRTL: true,
   },
 };
 

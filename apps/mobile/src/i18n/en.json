@@ -1,0 +1,32 @@
+{
+  "app": {
+    "name": "Finny",
+    "tagline": "Manage your money with ease"
+  },
+  "common": {
+    "loading": "Loading…",
+    "retry": "Try again",
+    "errorGeneric": "Something went wrong. Try again."
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "orContinueWith": "Or continue with"
+  },
+  "settings": {
+    "language": "Language",
+    "languageHe": "עברית",
+    "languageEn": "English",
+    "theme": "Theme",
+    "themeSystem": "Match phone",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "languageRestartNote": "The app reloads to flip direction."
+  },
+  "preview": {
+    "title": "Style preview",
+    "wallet": "Wallet logo",
+    "leftOfBudget": "{{left}} left of {{total}}",
+    "overBudget": "Over by {{amount}}"
+  }
+}

@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Light theme defaults. ThemeProvider overrides these from @finny/tokens. */
+:root {
+  --color-primary: 74 124 111;
+  --color-on-primary: 255 255 255;
+  --color-secondary: 168 197 180;
+  --color-background: 245 241 232;
+  --color-surface: 255 255 255;
+  --color-surface-muted: 239 234 223;
+  --color-accent: 232 168 124;
+  --color-on-accent: 74 42 18;
+  --color-text: 46 61 56;
+  --color-text-muted: 107 122 116;
+  --color-border: 228 223 210;
+  --color-danger: 214 69 69;
+  --color-danger-surface: 252 235 235;
+  --color-success: 62 142 90;
+  --color-leaf-light: 207 224 211;
+  --color-leaf-mid: 168 197 180;
+  --color-leaf-dark: 74 124 111;
+}

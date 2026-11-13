@@ -1,0 +1,32 @@
+{
+  "app": {
+    "name": "Finny",
+    "tagline": "תנהל את הכסף שלך בקלות"
+  },
+  "common": {
+    "loading": "טוען…",
+    "retry": "נסה שוב",
+    "errorGeneric": "משהו השתבש. נסה שוב."
+  },
+  "auth": {
+    "signIn": "התחברות",
+    "signUp": "הרשמה",
+    "orContinueWith": "או התחבר עם"
+  },
+  "settings": {
+    "language": "שפה",
+    "languageHe": "עברית",
+    "languageEn": "English",
+    "theme": "ערכת נושא",
+    "themeSystem": "לפי המכשיר",
+    "themeLight": "בהיר",
+    "themeDark": "כהה",
+    "languageRestartNote": "האפליקציה תיטען מחדש כדי להחליף כיוון."
+  },
+  "preview": {
+    "title": "תצוגת עיצוב",
+    "wallet": "לוגו הארנק",
+    "leftOfBudget": "נשאר {{left}} מתוך {{total}}",
+    "overBudget": "חריגה {{amount}}"
+  }
+}

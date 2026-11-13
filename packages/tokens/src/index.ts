@@ -91,3 +91,26 @@ export const fontSize = {
   heading: 24,
   hero: 36,
 } as const;
+
+/** Greens used by leaf artwork, darkest to lightest. Taken from the owner's SVGs. */
+export const leafPalette = [
+  '#245C47',
+  '#2A6B52',
+  '#2F7D5B',
+  '#3A8A66',
+  '#4C9A76',
+  '#5BA37F',
+  '#6FB28F',
+] as const;
+
+/** Colors of the wallet illustration. */
+export const walletPalette = {
+  body: '#245C47',
+  flap: '#2F7D5B',
+  stitch: '#3A8A66',
+  clasp: '#1D4D3B',
+  coin: '#F2C14E',
+  coinCenter: '#E5A92E',
+  cardGreen: '#7DB892',
+  cardPeach: '#F6B88A',
+} as const;
