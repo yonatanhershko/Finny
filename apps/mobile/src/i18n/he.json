@@ -6,12 +6,36 @@
   "common": {
     "loading": "טוען…",
     "retry": "נסה שוב",
-    "errorGeneric": "משהו השתבש. נסה שוב."
+    "errorGeneric": "משהו השתבש. נסה שוב.",
+    "next": "המשך",
+    "back": "חזרה"
   },
   "auth": {
     "signIn": "התחברות",
     "signUp": "הרשמה",
-    "orContinueWith": "או התחבר עם"
+    "signOut": "יציאה מהחשבון",
+    "signInTitle": "ברוך שובך",
+    "signUpTitle": "יצירת חשבון",
+    "email": "אימייל",
+    "password": "סיסמה",
+    "fullName": "שם מלא",
+    "choosePassword": "בחר סיסמה (לפחות {{min}} תווים)",
+    "createAccount": "צור חשבון",
+    "noAccount": "אין לך חשבון? הרשמה",
+    "haveAccount": "יש לך כבר חשבון? התחברות",
+    "stepOf": "שלב {{step}} מתוך {{total}}",
+    "errors": {
+      "nameRequired": "הזן שם מלא",
+      "emailInvalid": "כתובת האימייל לא תקינה",
+      "passwordShort": "הסיסמה צריכה לפחות {{min}} תווים",
+      "passwordRequired": "הזן סיסמה",
+      "invalidCredentials": "האימייל או הסיסמה שגויים",
+      "emailTaken": "האימייל הזה כבר רשום. נסה להתחבר",
+      "weakPassword": "הסיסמה חלשה מדי. בחר סיסמה אחרת",
+      "confirmEmail": "צריך לאשר את האימייל לפני הכניסה",
+      "network": "אין חיבור לרשת. נסה שוב",
+      "generic": "משהו השתבש. נסה שוב"
+    }
   },
   "settings": {
     "language": "שפה",
@@ -23,10 +47,35 @@
     "themeDark": "כהה",
     "languageRestartNote": "האפליקציה תיטען מחדש כדי להחליף כיוון."
   },
-  "preview": {
-    "title": "תצוגת עיצוב",
-    "wallet": "לוגו הארנק",
-    "leftOfBudget": "נשאר {{left}} מתוך {{total}}",
-    "overBudget": "חריגה {{amount}}"
+  "locked": {
+    "contactAdvisor": "צור קשר עם היועץ שלך",
+    "checkAgain": "בדוק שוב",
+    "askAgain": "שלח בקשה מחדש",
+    "stillLocked": "עדיין ממתין לאישור.",
+    "whatsappFailed": "לא הצלחנו לפתוח את וואטסאפ. המספר: 052-320-3902",
+    "whatsappMessage": "היי, נרשמתי ל-Finny ושילמתי בביט. שם: {{name}}, אימייל: {{email}}",
+    "pending": {
+      "title": "החשבון שלך ממתין לאישור תשלום בביט",
+      "body": "לאחר אישור התשלום, תקבל גישה מלאה לאפליקציה למשך שנה."
+    },
+    "rejected": {
+      "title": "הבקשה שלך לא אושרה",
+      "body": "אם שילמת בביט, צור קשר עם היועץ שלך או שלח בקשה מחדש."
+    },
+    "expired": {
+      "title": "המנוי שלך הסתיים",
+      "body": "הנתונים שלך שמורים. חדש את המנוי בביט כדי לחזור לאפליקציה."
+    },
+    "error": {
+      "title": "לא הצלחנו לטעון את החשבון",
+      "body": "בדוק את החיבור לרשת ונסה שוב."
+    }
+  },
+  "home": {
+    "hello": "שלום {{name}}",
+    "unlocked": "החשבון פעיל",
+    "daysLeft_one": "נשאר יום אחד למנוי",
+    "daysLeft_two": "נשארו יומיים למנוי",
+    "daysLeft_other": "נשארו {{count}} ימים למנוי"
   }
 }

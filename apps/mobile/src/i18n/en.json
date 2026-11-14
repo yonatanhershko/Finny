@@ -6,12 +6,36 @@
   "common": {
     "loading": "Loading…",
     "retry": "Try again",
-    "errorGeneric": "Something went wrong. Try again."
+    "errorGeneric": "Something went wrong. Try again.",
+    "next": "Continue",
+    "back": "Back"
   },
   "auth": {
     "signIn": "Sign in",
     "signUp": "Sign up",
-    "orContinueWith": "Or continue with"
+    "signOut": "Sign out",
+    "signInTitle": "Welcome back",
+    "signUpTitle": "Create your account",
+    "email": "Email",
+    "password": "Password",
+    "fullName": "Full name",
+    "choosePassword": "Choose a password (at least {{min}} characters)",
+    "createAccount": "Create account",
+    "noAccount": "No account yet? Sign up",
+    "haveAccount": "Already have an account? Sign in",
+    "stepOf": "Step {{step}} of {{total}}",
+    "errors": {
+      "nameRequired": "Enter your full name",
+      "emailInvalid": "That email address isn't valid",
+      "passwordShort": "Password needs at least {{min}} characters",
+      "passwordRequired": "Enter your password",
+      "invalidCredentials": "Wrong email or password",
+      "emailTaken": "That email is already registered. Try signing in",
+      "weakPassword": "That password is too weak. Choose another",
+      "confirmEmail": "Confirm your email before signing in",
+      "network": "No connection. Try again",
+      "generic": "Something went wrong. Try again"
+    }
   },
   "settings": {
     "language": "Language",
@@ -23,10 +47,34 @@
     "themeDark": "Dark",
     "languageRestartNote": "The app reloads to flip direction."
   },
-  "preview": {
-    "title": "Style preview",
-    "wallet": "Wallet logo",
-    "leftOfBudget": "{{left}} left of {{total}}",
-    "overBudget": "Over by {{amount}}"
+  "locked": {
+    "contactAdvisor": "Contact your advisor",
+    "checkAgain": "Check again",
+    "askAgain": "Send request again",
+    "stillLocked": "Still waiting for approval.",
+    "whatsappFailed": "Couldn't open WhatsApp. The number is 052-320-3902",
+    "whatsappMessage": "Hi, I signed up for Finny and paid with Bit. Name: {{name}}, email: {{email}}",
+    "pending": {
+      "title": "Your account is waiting for Bit payment approval",
+      "body": "Once the payment is approved, you get full access to the app for one year."
+    },
+    "rejected": {
+      "title": "Your request wasn't approved",
+      "body": "If you paid with Bit, contact your advisor or send the request again."
+    },
+    "expired": {
+      "title": "Your subscription has ended",
+      "body": "Your data is kept. Renew with Bit to get back into the app."
+    },
+    "error": {
+      "title": "Couldn't load your account",
+      "body": "Check your connection and try again."
+    }
+  },
+  "home": {
+    "hello": "Hello {{name}}",
+    "unlocked": "Your account is active",
+    "daysLeft_one": "{{count}} day left on your subscription",
+    "daysLeft_other": "{{count}} days left on your subscription"
   }
 }

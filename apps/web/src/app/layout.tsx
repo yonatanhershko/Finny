@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { Rubik } from "next/font/google";
 import type { CSSProperties } from "react";
 
+import { AdminAuthProvider } from "@/auth/AdminAuth";
+
 import "./globals.css";
 
 const rubik = Rubik({
@@ -33,7 +35,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${rubik.variable} h-full antialiased`}
       style={tokenVars}
     >
-      <body className="min-h-full flex flex-col font-sans">{children}</body>
+      <body className="min-h-full flex flex-col font-sans">
+        <AdminAuthProvider>{children}</AdminAuthProvider>
+      </body>
     </html>
   );
 }

@@ -1,10 +1,11 @@
+import type { Database } from '@finny/shared';
 import { createClient } from '@supabase/supabase-js';
 import { AppState, Platform } from 'react-native';
 
 import { env } from '@/lib/env';
 import { secureStorage } from '@/lib/secure-storage';
 
-export const supabase = createClient(env.supabaseUrl, env.supabasePublishableKey, {
+export const supabase = createClient<Database>(env.supabaseUrl, env.supabasePublishableKey, {
   auth: {
     storage: secureStorage,
     autoRefreshToken: true,
