@@ -1,5 +1,5 @@
 import { leafPalette } from '@finny/tokens';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 
 import { isRtl, useLanguage } from '@/i18n';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -22,11 +22,29 @@ const drifting: { left: `${number}%`; top: `${number}%`; size: number; rotate: n
   { left: '6%', top: '58%', size: 20, rotate: 60, color: 4, duration: 3000, delay: 600 },
 ];
 
-export function LeafBackground({ density = 'medium' }: { density?: LeafDensity }) {
+export function LeafBackground({
+  density = 'medium',
+  topCorner = false,
+}: {
+  density?: LeafDensity;
+  /** One small cluster in the top corner opposite the header controls (home). */
+  topCorner?: boolean;
+}) {
   const { theme } = useTheme();
   const opacity = theme === 'dark' ? 0.5 : 0.85;
   // Positions use start/end, so in RTL the art lands on the other side and must mirror too.
-  const flip = isRtl(useLanguage()) ? -1 : 1;
+  const rtl = isRtl(useLanguage());
+  const flip = rtl ? -1 : 1;
+  // Native mirrors start/end by itself in RTL. On web, absolute start/end stay
+  // physical, so pick the physical side by hand there.
+  const at = (side: 'start' | 'end', inset: number) =>
+    Platform.OS === 'web'
+      ? (side === 'start') !== rtl
+        ? { left: inset }
+        : { right: inset }
+      : side === 'start'
+        ? { start: inset }
+        : { end: inset };
 
   return (
     <View
@@ -34,12 +52,17 @@ export function LeafBackground({ density = 'medium' }: { density?: LeafDensity }
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
       style={[StyleSheet.absoluteFill, styles.layer, { opacity }]}>
-      <View style={[styles.bottomStart, { transform: [{ scaleX: flip }] }]}>
+      <View style={[styles.bottom, at('start', -22), { transform: [{ scaleX: flip }] }]}>
         <LeafCluster size={density === 'low' ? 84 : 104} />
       </View>
       {density !== 'low' && (
-        <View style={[styles.bottomEnd, { transform: [{ scaleX: -flip }] }]}>
+        <View style={[styles.bottom, at('end', -22), { transform: [{ scaleX: -flip }] }]}>
           <LeafCluster size={88} />
+        </View>
+      )}
+      {topCorner && (
+        <View style={[styles.top, at('start', -20), { transform: [{ scaleX: flip }, { scaleY: -1 }] }]}>
+          <LeafCluster size={92} />
         </View>
       )}
       {density === 'high' &&
@@ -63,6 +86,6 @@ export function LeafBackground({ density = 'medium' }: { density?: LeafDensity }
 
 const styles = StyleSheet.create({
   layer: { overflow: 'hidden' },
-  bottomStart: { position: 'absolute', start: -22, bottom: -14 },
-  bottomEnd: { position: 'absolute', end: -22, bottom: -14 },
+  bottom: { position: 'absolute', bottom: -14 },
+  top: { position: 'absolute', top: -12, opacity: 0.6 },
 });

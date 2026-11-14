@@ -7,5 +7,5 @@ export default function Index() {
   const { session, access } = useAuth();
   if (!session) return <Redirect href="/welcome" />;
   if (!access) return <Redirect href="/locked" />;
-  return <Redirect href="/home" />;
+  return <Redirect href="/today" />;
 }

@@ -20,7 +20,7 @@ export function TextField({ label, error, ...props }: TextFieldProps) {
       <TextInput
         accessibilityLabel={label}
         placeholderTextColor={colors.textMuted}
-        className={`min-h-[52px] rounded-lg border bg-surface px-4 font-rubik text-[16px] text-text ${
+        className={`min-h-[52px] rounded-lg border bg-surface px-4 font-rubik text-[16px] text-text outline-none ${
           error ? 'border-danger' : 'border-border'
         }`}
         {...props}

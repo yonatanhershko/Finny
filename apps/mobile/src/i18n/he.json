@@ -8,7 +8,18 @@
     "retry": "נסה שוב",
     "errorGeneric": "משהו השתבש. נסה שוב.",
     "next": "המשך",
-    "back": "חזרה"
+    "back": "חזרה",
+    "save": "שמור",
+    "cancel": "ביטול",
+    "delete": "מחק",
+    "edit": "עריכה",
+    "close": "סגור",
+    "today": "היום",
+    "previous": "הקודם",
+    "nextItem": "הבא",
+    "expense": "הוצאה",
+    "income": "הכנסה",
+    "loadFailed": "לא הצלחנו לטעון. בדוק את החיבור."
   },
   "auth": {
     "signIn": "התחברות",
@@ -71,11 +82,155 @@
       "body": "בדוק את החיבור לרשת ונסה שוב."
     }
   },
-  "home": {
-    "hello": "שלום {{name}}",
-    "unlocked": "החשבון פעיל",
-    "daysLeft_one": "נשאר יום אחד למנוי",
-    "daysLeft_two": "נשארו יומיים למנוי",
-    "daysLeft_other": "נשארו {{count}} ימים למנוי"
+  "tabs": {
+    "today": "היום",
+    "stats": "סטטיסטיקות",
+    "goals": "מטרות",
+    "more": "עוד"
+  },
+  "today": {
+    "totalExpenses": "סך ההוצאות החודשיות",
+    "leftOf": "נשאר {{left}} מתוך {{total}}",
+    "left": "נשאר {{amount}}",
+    "overBy": "חריגה {{amount}}",
+    "spentOf": "{{spent}} מתוך {{budget}}",
+    "incomeThisPeriod": "הכנסות החודש: {{amount}}",
+    "categoriesThisPeriod": "קטגוריות החודש",
+    "empty": "עוד אין הוצאות החודש. הוסף את הראשונה.",
+    "addExpense": "הוספת הוצאה",
+    "addIncome": "הוספת הכנסה"
+  },
+  "add": {
+    "title": {
+      "expense": "הוספת הוצאה",
+      "income": "הוספת הכנסה"
+    },
+    "editTitle": {
+      "expense": "עריכת הוצאה",
+      "income": "עריכת הכנסה"
+    },
+    "amount": "סכום",
+    "description": "תיאור",
+    "date": "תאריך",
+    "category": "קטגוריה",
+    "repeat": "חוזר / תשלומים",
+    "repeatOptions": {
+      "none": "ללא",
+      "weekly": "כל שבוע",
+      "monthly": "כל חודש",
+      "yearly": "כל שנה",
+      "installments": "תשלומים"
+    },
+    "installmentsCount": "מספר תשלומים (2–120)",
+    "installmentsEven": "{{count}} תשלומים חודשיים של {{each}}",
+    "installmentsUneven": "{{count}} תשלומים חודשיים: ראשון {{first}}, ואחריו {{each}}",
+    "recurringNote": "יתווסף אוטומטית החל מ-{{date}}.",
+    "errors": {
+      "amount": "הזן סכום תקין",
+      "category": "בחר קטגוריה",
+      "installments": "מספר התשלומים צריך להיות בין 2 ל-120"
+    }
+  },
+  "categories": {
+    "unknown": "ללא קטגוריה",
+    "name": "שם הקטגוריה",
+    "nameRequired": "הזן שם לקטגוריה",
+    "add": "קטגוריה חדשה",
+    "new": "חדש",
+    "edit": "עריכת קטגוריה",
+    "budgetLine": "תקציב חודשי: {{amount}}",
+    "moveUp": "הזז למעלה: {{name}}",
+    "moveDown": "הזז למטה: {{name}}",
+    "removeTitle": "למחוק את {{name}}?",
+    "removeBody": "אם יש בקטגוריה פעולות, היא תוסתר והפעולות יישמרו בהיסטוריה ובסיכומים.",
+    "defaults": {
+      "car": "אחזקת רכב",
+      "food": "אוכל ומשקאות",
+      "leisure": "בילויים ופנאי",
+      "housing": "דיור",
+      "health": "בריאות",
+      "shopping": "קניות",
+      "bills": "חשבונות",
+      "other": "אחר",
+      "salary": "משכורת"
+    }
+  },
+  "category": {
+    "spentThisPeriod": "סה\"כ החודש",
+    "setBudget": "הגדר תקציב חודשי",
+    "changeBudget": "שנה תקציב",
+    "budgetTitle": "תקציב חודשי: {{name}}",
+    "removeBudget": "הסר תקציב",
+    "monthlyBudget": "תקציב חודשי",
+    "monthlyBudgetOptional": "תקציב חודשי (לא חובה)",
+    "transactions": "פעולות החודש",
+    "empty": "אין פעולות בקטגוריה החודש."
+  },
+  "transactions": {
+    "deleteTitle": "למחוק את הפעולה?",
+    "empty": "עוד אין פעולות."
+  },
+  "stats": {
+    "monthly": "חודשי",
+    "yearly": "שנתי",
+    "expenses": "הוצאות",
+    "income": "הכנסות",
+    "totalExpenses": "סך ההוצאות",
+    "totalIncome": "סך ההכנסות",
+    "empty": "אין נתונים לתקופה הזו.",
+    "changeMonth": "{{change}} מהחודש הקודם",
+    "changeYear": "{{change}} מהשנה הקודמת"
+  },
+  "goals": {
+    "title": "מטרות וחסכונות",
+    "add": "מטרה חדשה",
+    "empty": "עוד אין מטרות. הגדר מטרה והתחל לחסוך.",
+    "target": "יעד: {{amount}}",
+    "saved": "נוכחי: {{amount}}",
+    "deposit": "הפקד כספים",
+    "depositTitle": "הפקדה: {{name}}",
+    "depositNote": "הפקדה למטרה אינה נספרת כהוצאה.",
+    "name": "שם המטרה",
+    "targetAmount": "סכום היעד",
+    "deleteTitle": "למחוק את {{name}}?",
+    "deleteBody": "המטרה וכל ההפקדות שלה יימחקו.",
+    "errors": {
+      "name": "הזן שם למטרה",
+      "target": "הזן סכום יעד תקין"
+    }
+  },
+  "more": {
+    "account": "החשבון שלי",
+    "currency": "מטבע",
+    "currencyILS": "שקל",
+    "currencyUSD": "דולר",
+    "currencyNote": "רק הסימן משתנה. הסכומים לא מומרים.",
+    "monthStart": "תחילת חודש תקציבי",
+    "monthStartLabel": "יום בחודש (1–31)",
+    "monthStartNote": "בחודש קצר יותר החודש התקציבי מתחיל ביום האחרון שלו.",
+    "monthStartError": "הזן יום בין 1 ל-31",
+    "overallBudget": "תקציב חודשי כולל",
+    "notSet": "לא הוגדר",
+    "categories": "קטגוריות",
+    "history": "היסטוריה וייצוא",
+    "reminders": "תזכורות",
+    "soon": "בקרוב",
+    "deleteAccount": "מחיקת חשבון",
+    "deleteTitle": "למחוק את החשבון?",
+    "deleteBody": "כל הנתונים שלך יימחקו לצמיתות: פעולות, קטגוריות, תקציבים ומטרות. אי אפשר לבטל.",
+    "deleteWord": "מחק",
+    "deleteTypeToConfirm": "הקלד \"{{word}}\" לאישור",
+    "deleteConfirm": "מחק את החשבון לצמיתות"
+  },
+  "export": {
+    "button": "ייצוא לאקסל (CSV)",
+    "date": "תאריך",
+    "type": "סוג",
+    "category": "קטגוריה",
+    "description": "תיאור",
+    "amount": "סכום",
+    "done": "הקובץ מוכן.",
+    "unavailable": "אי אפשר לשתף קבצים במכשיר הזה.",
+    "failed": "הייצוא נכשל. נסה שוב."
   }
 }

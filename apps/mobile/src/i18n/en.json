@@ -8,7 +8,18 @@
     "retry": "Try again",
     "errorGeneric": "Something went wrong. Try again.",
     "next": "Continue",
-    "back": "Back"
+    "back": "Back",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "today": "Today",
+    "previous": "Previous",
+    "nextItem": "Next",
+    "expense": "Expense",
+    "income": "Income",
+    "loadFailed": "Couldn't load. Check your connection."
   },
   "auth": {
     "signIn": "Sign in",
@@ -71,10 +82,155 @@
       "body": "Check your connection and try again."
     }
   },
-  "home": {
-    "hello": "Hello {{name}}",
-    "unlocked": "Your account is active",
-    "daysLeft_one": "{{count}} day left on your subscription",
-    "daysLeft_other": "{{count}} days left on your subscription"
+  "tabs": {
+    "today": "Today",
+    "stats": "Stats",
+    "goals": "Goals",
+    "more": "More"
+  },
+  "today": {
+    "totalExpenses": "Total spent this month",
+    "leftOf": "{{left}} left of {{total}}",
+    "left": "{{amount}} left",
+    "overBy": "Over by {{amount}}",
+    "spentOf": "{{spent}} of {{budget}}",
+    "incomeThisPeriod": "Income this month: {{amount}}",
+    "categoriesThisPeriod": "This month's categories",
+    "empty": "No expenses yet this month. Add your first.",
+    "addExpense": "Add expense",
+    "addIncome": "Add income"
+  },
+  "add": {
+    "title": {
+      "expense": "Add expense",
+      "income": "Add income"
+    },
+    "editTitle": {
+      "expense": "Edit expense",
+      "income": "Edit income"
+    },
+    "amount": "Amount",
+    "description": "Description",
+    "date": "Date",
+    "category": "Category",
+    "repeat": "Repeat / installments",
+    "repeatOptions": {
+      "none": "None",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "installments": "Installments"
+    },
+    "installmentsCount": "Number of payments (2–120)",
+    "installmentsEven": "{{count}} monthly payments of {{each}}",
+    "installmentsUneven": "{{count}} monthly payments: first {{first}}, then {{each}}",
+    "recurringNote": "Added automatically starting {{date}}.",
+    "errors": {
+      "amount": "Enter a valid amount",
+      "category": "Choose a category",
+      "installments": "Payments must be between 2 and 120"
+    }
+  },
+  "categories": {
+    "unknown": "No category",
+    "name": "Category name",
+    "nameRequired": "Enter a category name",
+    "add": "New category",
+    "new": "New",
+    "edit": "Edit category",
+    "budgetLine": "Monthly budget: {{amount}}",
+    "moveUp": "Move up: {{name}}",
+    "moveDown": "Move down: {{name}}",
+    "removeTitle": "Delete {{name}}?",
+    "removeBody": "If it has transactions, it's hidden and the transactions stay in history and totals.",
+    "defaults": {
+      "car": "Car",
+      "food": "Food and drink",
+      "leisure": "Leisure",
+      "housing": "Housing",
+      "health": "Health",
+      "shopping": "Shopping",
+      "bills": "Bills",
+      "other": "Other",
+      "salary": "Salary"
+    }
+  },
+  "category": {
+    "spentThisPeriod": "Total this month",
+    "setBudget": "Set a monthly budget",
+    "changeBudget": "Change budget",
+    "budgetTitle": "Monthly budget: {{name}}",
+    "removeBudget": "Remove budget",
+    "monthlyBudget": "Monthly budget",
+    "monthlyBudgetOptional": "Monthly budget (optional)",
+    "transactions": "This month's transactions",
+    "empty": "Nothing in this category this month."
+  },
+  "transactions": {
+    "deleteTitle": "Delete this transaction?",
+    "empty": "No transactions yet."
+  },
+  "stats": {
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "expenses": "Expenses",
+    "income": "Income",
+    "totalExpenses": "Total expenses",
+    "totalIncome": "Total income",
+    "empty": "Nothing for this period.",
+    "changeMonth": "{{change}} vs last month",
+    "changeYear": "{{change}} vs last year"
+  },
+  "goals": {
+    "title": "Goals and savings",
+    "add": "New goal",
+    "empty": "No goals yet. Set one and start saving.",
+    "target": "Target: {{amount}}",
+    "saved": "Saved: {{amount}}",
+    "deposit": "Deposit",
+    "depositTitle": "Deposit: {{name}}",
+    "depositNote": "A deposit into a goal doesn't count as an expense.",
+    "name": "Goal name",
+    "targetAmount": "Target amount",
+    "deleteTitle": "Delete {{name}}?",
+    "deleteBody": "The goal and all its deposits are deleted.",
+    "errors": {
+      "name": "Enter a goal name",
+      "target": "Enter a valid target amount"
+    }
+  },
+  "more": {
+    "account": "My account",
+    "currency": "Currency",
+    "currencyILS": "Shekel",
+    "currencyUSD": "Dollar",
+    "currencyNote": "Only the sign changes. Amounts are not converted.",
+    "monthStart": "Budget month starts",
+    "monthStartLabel": "Day of month (1–31)",
+    "monthStartNote": "In a shorter month, the budget month starts on its last day.",
+    "monthStartError": "Enter a day from 1 to 31",
+    "overallBudget": "Overall monthly budget",
+    "notSet": "Not set",
+    "categories": "Categories",
+    "history": "History and export",
+    "reminders": "Reminders",
+    "soon": "Soon",
+    "deleteAccount": "Delete account",
+    "deleteTitle": "Delete your account?",
+    "deleteBody": "All your data is deleted for good: transactions, categories, budgets and goals. This can't be undone.",
+    "deleteWord": "delete",
+    "deleteTypeToConfirm": "Type \"{{word}}\" to confirm",
+    "deleteConfirm": "Delete account for good"
+  },
+  "export": {
+    "button": "Export to Excel (CSV)",
+    "date": "Date",
+    "type": "Type",
+    "category": "Category",
+    "description": "Description",
+    "amount": "Amount",
+    "done": "File ready.",
+    "unavailable": "This device can't share files.",
+    "failed": "Export failed. Try again."
   }
 }

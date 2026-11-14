@@ -20,7 +20,7 @@ Init → Phase 1 infra → Phase 5 tokens / theme / i18n / leaf art → Phase 2 
 - Locked screen button "Contact your advisor" opens WhatsApp to 052-320-3902. A bot may replace this later.
 - `profiles.status`: `pending_approval` | `active` | `expired` | `rejected`.
 - `profiles.role`: `client` | `admin`.
-- `profiles.plan`: `paid` (1 year), `vip` (1 year, granted by admin without payment), `family` (never expires, granted by admin). **(assumed: this is the meaning of VIP and family)**
+- `profiles.plan`: `paid` (1 year), `vip` (1 year, granted by admin without payment), `family` (never expires, granted by admin). Confirmed by the owner 2026-11-14.
 - Approve: status → `active`, `approved_at` = now, `expires_at` = now + 365 days (`family`: no expiry).
 - Renew / extend: new expiry = old `expires_at` + 365 days if still active, otherwise now + 365 days.
 - Rejected users can submit again (status back to `pending_approval`).
@@ -37,23 +37,31 @@ Init → Phase 1 infra → Phase 5 tokens / theme / i18n / leaf art → Phase 2 
 ## Money
 
 - Amounts stored as integers in minor units. Always positive; `type` is `income` or `expense`.
-- Currency: user preference in settings, `ILS` or `USD`. **(assumed: display only, one currency per account, no conversion)**
-- Budget month: calendar month, or a user-chosen start day. **(assumed: start day limited to 1–28 so every month has it)**
+- Currency: user preference in settings, `ILS` or `USD`. Display only: the sign changes, nothing is converted. Confirmed 2026-11-14.
+- Budget month: calendar month, or a user-chosen start day 1–31 (no 28 limit, owner 2026-11-14). In a month shorter than the start day, the budget month starts on that month's last day (start day 31 → 28/29 Feb, 30 Apr). Calendar math uses the date-fns library, never hand-written date code.
+- Yearly stats = calendar year, 1 January to 31 December. **(assumed)**
 - Categories: separate lists for income and expense. Defaults are created for each new user; the user can add, rename, delete and reorder both lists. No subcategories.
   - Expense defaults: car, food and drink, leisure, housing, health, shopping, bills, other.
   - Income defaults: salary, other.
 - Budgets: optional monthly budget per expense category, plus an optional overall monthly budget. Same amount every month, no rollover.
 - Home shows, small and quiet, how much is left: overall and per category. Over budget → bold red amount and red bar.
 - Transaction fields: amount, description, date (defaults to today), category, and optional repeat.
-- Repeat options: recurring (repeats on a chosen date) or installments (a total split over N payments from a chosen date). Detailed rules (frequency choices, editing, deleting) to be confirmed before Phase 3.
+- Repeat options, chosen in the add sheet. **(details assumed by Claude, confirm or change)**
+  - Recurring: weekly, monthly or yearly from the chosen date. Each occurrence becomes a real transaction on its date, created when the app is opened on or after that date (missed ones are caught up). A rule that starts on the 31st stays on month ends.
+  - Installments: a total split into 2–120 monthly payments from the chosen date. Every payment is the total divided by the count, rounded down; the remainder goes on the first payment, so the payments sum to the total exactly. All payments are created at once, future-dated, and count in the month they fall in.
+  - Each generated transaction can be edited or deleted on its own. Editing a rule is not in v1.
+- Deleting a category: if it has transactions it is archived (hidden from pickers; history and totals keep it). If unused it is deleted. **(assumed)**
+- Goal withdrawals are not in v1; deposits only. **(assumed)**
+- Home lists an expense category when it has spending in the current budget month or has a budget.
 - Goals: separate from transactions. A deposit into a goal does not count as an expense and does not change totals or stats.
 - Not in v1: accounts (cash / card), transfers, tags, receipt photos.
 
 ## Screens
 
 - Tabs: Today (home), Stats, Goals, More.
-- Home: moving 3D wallet logo, date, period expense total, overall left, Income and Expense buttons, category cards. Tap a card → that period's transactions with edit / delete.
+- Home: no wallet in the header after login (owner 2026-11-14); bell, date, period expense total, overall left, Income and Expense buttons, category cards. Tap a card → that period's transactions with edit / delete.
 - Add transaction: bottom sheet; category is an icon grid with a "+" tile at the end.
+- Export is a CSV file (opens in Excel and Google Sheets, Hebrew included).
 - Stats: monthly / yearly, expense / income, previous / next period, donut with total in the center, legend with percent and sum, change versus the previous period.
 - Goals: cards with target, saved, progress bar, deposit button.
 - More: account, language, theme, currency, budget month start, reminders, purchase-notification toggle (future), history + Excel export, delete account, sign out.
@@ -76,4 +84,4 @@ Init → Phase 1 infra → Phase 5 tokens / theme / i18n / leaf art → Phase 2 
 
 ## Dev test users
 
-Four users in the dev project: one admin, one active client, one pending, one expired. Credentials are kept in the gitignored `supabase/seed/dev-users.local.md`.
+Four users in the dev project: one admin, one active client (with sample data), one pending, one expired. Credentials are kept in the gitignored `supabase/seed/dev-users.local.md`.
