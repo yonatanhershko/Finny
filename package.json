@@ -12,7 +12,7 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
-    "test:db": "node supabase/tests/access.test.mjs"
+    "test:db": "node supabase/tests/access.test.mjs && node supabase/tests/money.test.mjs"
   },
   "engines": {
     "node": ">=20"
