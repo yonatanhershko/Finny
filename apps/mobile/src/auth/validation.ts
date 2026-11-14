@@ -1,5 +1,7 @@
 /** Form checks. Each returns an i18n key for the problem, or null when fine. */
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Letters, digits and the usual . _ % + - in the name; a real domain with a 2+ letter ending.
+// Catches typos such as "g,ail.com" before the server has to reject them.
+const EMAIL = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
 
 export const MIN_PASSWORD_LENGTH = 8;
 

@@ -74,6 +74,14 @@ export default function SignInScreen() {
             </AppText>
           ) : null}
           <Button label={t('auth.signIn')} onPress={submit} loading={busy} />
+          <Pressable
+            accessibilityRole="link"
+            onPress={() => router.push('/forgot')}
+            className="min-h-[44px] items-center justify-center">
+            <AppText tone="primary" weight="medium" className="text-[15px]">
+              {t('auth.forgot.link')}
+            </AppText>
+          </Pressable>
         </View>
         <Pressable
           accessibilityRole="link"

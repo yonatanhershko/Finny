@@ -5,10 +5,15 @@ import { AppState } from 'react-native';
 
 import { supabase } from '@/lib/supabase';
 
+import { TERMS_VERSION } from './terms';
+
 /** Error codes the screens translate. Anything unknown becomes `generic`. */
 export type AuthErrorCode =
   | 'invalidCredentials'
   | 'emailTaken'
+  | 'emailInvalid'
+  | 'codeInvalid'
+  | 'tooManyRequests'
   | 'weakPassword'
   | 'confirmEmail'
   | 'network'
@@ -25,6 +30,10 @@ type AuthContextValue = {
   access: boolean;
   signIn: (email: string, password: string) => Promise<AuthErrorCode | null>;
   signUp: (fullName: string, email: string, password: string) => Promise<AuthErrorCode | null>;
+  /** Sends a 6-digit reset code to the email. Same answer for unknown emails. */
+  requestPasswordReset: (email: string) => Promise<AuthErrorCode | null>;
+  /** Checks the code, then sets the new password. Signs the user in on success. */
+  resetPassword: (email: string, code: string, newPassword: string) => Promise<AuthErrorCode | null>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 };
@@ -38,6 +47,14 @@ function toErrorCode(error: { code?: string; status?: number; message?: string }
     case 'user_already_exists':
     case 'email_exists':
       return 'emailTaken';
+    case 'otp_expired':
+      return 'codeInvalid';
+    case 'over_email_send_rate_limit':
+    case 'over_request_rate_limit':
+      return 'tooManyRequests';
+    case 'validation_failed':
+    case 'email_address_invalid':
+      return 'emailInvalid';
     case 'weak_password':
       return 'weakPassword';
     case 'email_not_confirmed':
@@ -122,11 +139,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
-        options: { data: { full_name: fullName.trim() } },
+        options: {
+          data: {
+            full_name: fullName.trim(),
+            terms_version: TERMS_VERSION,
+            terms_accepted_at: new Date().toISOString(),
+          },
+        },
       });
       if (error) return toErrorCode(error);
       // No session means the project still asks for email confirmation.
       return data.session ? null : 'confirmEmail';
+    },
+    requestPasswordReset: async (email) => {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+      return error ? toErrorCode(error) : null;
+    },
+    resetPassword: async (email, code, newPassword) => {
+      const verified = await supabase.auth.verifyOtp({
+        email: email.trim(),
+        token: code.trim(),
+        type: 'recovery',
+      });
+      if (verified.error) {
+        const mapped = toErrorCode(verified.error);
+        return mapped === 'generic' ? 'codeInvalid' : mapped;
+      }
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      return error ? toErrorCode(error) : null;
     },
     signOut: async () => {
       await supabase.auth.signOut();

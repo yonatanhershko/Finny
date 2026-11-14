@@ -6,7 +6,7 @@ Decided by the owner on 2026-11-13. Lines marked **(assumed)** were proposed by 
 
 - Mobile app (Expo, iOS + Android) for tracking income, expenses, budgets, goals. Admin web dashboard (Next.js on Vercel free tier). One Supabase database per environment.
 - Dev environment first. Prod gets a clean, separate Supabase project later.
-- Languages: Hebrew and English. Phone language decides at first launch; anything else falls back to Hebrew. User can switch in More.
+- Languages: Hebrew and English. Phone language decides at first launch: Hebrew phone → Hebrew, any other language → English (changed by the owner 2026-11-14). User can switch in More.
 - Themes: light and dark, tokens in `.claude/rules/design.md`.
 
 ## Build order
@@ -31,6 +31,8 @@ Init → Phase 1 infra → Phase 5 tokens / theme / i18n / leaf art → Phase 2 
 ## Sign-in
 
 - Email + password first. No email confirmation (no email-sending cost).
+- Sign-up has three steps: name, email, password. Earlier steps show as rows with a pencil, so the user can jump back and change the name or email. Under the email field is a "Terms of use" tab: tap it, read to the bottom, press OK, and the tab turns green. Continue stays locked until then. No checkbox. The accepted version and time are saved on the auth user (`terms_version`, `terms_accepted_at`). The terms text in the app is a draft; the owner supplies the final wording. (owner 2026-11-14)
+- Forgot password: from sign-in. Email → 6-digit code sent by email → code + new password. No OTP at sign-up (the admin approval is the gate; clients are personal, a few per month). Needs custom SMTP and a code template, see `docs/prod-setup.md`. (owner 2026-11-14)
 - Google and Facebook sign-in are wired later, when the owner has the developer accounts.
 - Apple sign-in: not wanted. Open issue: App Store requires an equivalent privacy-focused login (Apple) when third-party social login is offered on iOS. Decide when social login goes in.
 

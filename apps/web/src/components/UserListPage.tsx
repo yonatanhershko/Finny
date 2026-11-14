@@ -44,7 +44,7 @@ export function UserListPage({
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-3xl font-bold">{title}</h1>
+        <h1 className="text-2xl font-bold md:text-3xl">{title}</h1>
         <p className="text-text-muted">{subtitle}</p>
       </header>
 
@@ -59,7 +59,7 @@ export function UserListPage({
               setSearch(e.target.value);
               setPage(0);
             }}
-            className="h-9 w-64 rounded-lg border border-border bg-surface px-3 text-sm outline-none focus:border-primary"
+            className="h-9 w-full rounded-lg sm:w-64 border border-border bg-surface px-3 text-sm outline-none focus:border-primary"
           />
           {!fixedStatus && (
             <select
@@ -92,7 +92,7 @@ export function UserListPage({
           <UserTable users={users.data.rows} onChanged={users.reload} />
         )}
 
-        <div className="mt-4 flex items-center justify-between text-sm text-text-muted">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-text-muted">
           <span>
             {total.toLocaleString("en")} {total === 1 ? "user" : "users"}
           </span>

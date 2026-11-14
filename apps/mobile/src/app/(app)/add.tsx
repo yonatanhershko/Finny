@@ -120,7 +120,7 @@ export default function AddTransactionSheet() {
                 type === 'expense' ? 'bg-accent' : 'bg-primary'
               }`}>
               <Icon
-                name={type === 'expense' ? 'arrow-up' : 'arrow-down'}
+                name={type === 'expense' ? 'arrow-down' : 'arrow-up'}
                 tone={type === 'expense' ? 'onAccent' : 'onPrimary'}
               />
             </View>

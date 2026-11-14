@@ -19,6 +19,8 @@
     "nextItem": "Next",
     "expense": "Expense",
     "income": "Income",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "loadFailed": "Couldn't load. Check your connection."
   },
   "auth": {
@@ -45,7 +47,21 @@
       "weakPassword": "That password is too weak. Choose another",
       "confirmEmail": "Confirm your email before signing in",
       "network": "No connection. Try again",
-      "generic": "Something went wrong. Try again"
+      "generic": "Something went wrong. Try again",
+      "codeInvalid": "That code is wrong or has expired. Send a new one",
+      "tooManyRequests": "Too many tries. Wait a few minutes and try again"
+    },
+    "forgot": {
+      "title": "Reset your password",
+      "emailHelp": "Enter your email and we send you a 6-digit code.",
+      "codeHelp": "We sent a code to {{email}}. Enter it with your new password.",
+      "sendCode": "Send code",
+      "code": "Code from the email",
+      "newPassword": "New password (at least {{min}} characters)",
+      "save": "Save new password",
+      "resend": "Send a new code",
+      "link": "Forgot password?",
+      "backToSignIn": "Back to sign in"
     }
   },
   "settings": {
@@ -232,5 +248,38 @@
     "done": "File ready.",
     "unavailable": "This device can't share files.",
     "failed": "Export failed. Try again."
+  },
+  "terms": {
+    "title": "Terms of use",
+    "draftNote": "Draft text. The final wording comes from the Finny owner.",
+    "iRead": "OK, I read the terms",
+    "readFirst": "Open and read the terms to continue",
+    "openLink": "Read the terms of use",
+    "sections": [
+      {
+        "title": "What Finny is",
+        "body": "Finny is a personal tool to record your income, expenses, budgets and savings goals. It is not financial, tax or investment advice."
+      },
+      {
+        "title": "Access and payment",
+        "body": "Access is a yearly subscription paid by Bit, outside the app. An admin approves each account by hand. Until approval the app stays locked. When the year ends, the app locks again and your data is kept until you renew."
+      },
+      {
+        "title": "Your data",
+        "body": "The data you enter belongs to you. It is stored on secure servers and shown only to you. You can delete your account in More; this deletes all your data for good."
+      },
+      {
+        "title": "Your account",
+        "body": "Keep your password private. You are responsible for what is entered in your account."
+      },
+      {
+        "title": "Changes",
+        "body": "These terms may change. The version you agree to at sign-up is saved with your account."
+      }
+    ],
+    "done": "Terms read"
+  },
+  "splash": {
+    "loading": "Loading your money…"
   }
 }

@@ -10,8 +10,10 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
+import { LogBox } from 'react-native';
 
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
+import { SplashScreenArt } from '@/components/nature/SplashScreenArt';
 import { initI18n } from '@/i18n';
 import {
   loadLanguagePreference,
@@ -20,11 +22,23 @@ import {
 } from '@/lib/preferences';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 
+// Comes from a library touching RN's old ImageBackground export; we do not use it.
+LogBox.ignoreLogs(['ImageBackground is deprecated']);
+
 void SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({ Rubik_400Regular, Rubik_500Medium, Rubik_700Bold });
   const [themePreference, setThemePreference] = useState<ThemePreference | null>(null);
+  const [minElapsed, setMinElapsed] = useState(false);
+
+  // Hand over from the still native splash to the moving one right away, and
+  // keep the moving one up long enough to be seen.
+  useEffect(() => {
+    void SplashScreen.hideAsync();
+    const timer = setTimeout(() => setMinElapsed(true), 1400);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -40,7 +54,7 @@ export default function RootLayout() {
 
   // A font that fails to load must not lock the app on the splash screen.
   const ready = (fontsLoaded || !!fontError) && themePreference !== null;
-  if (!ready) return null;
+  if (!ready || !minElapsed) return <SplashScreenArt />;
 
   return (
     <ThemeProvider initialPreference={themePreference}>
@@ -63,11 +77,7 @@ function GuardedStack() {
   const { theme, colors } = useTheme();
   const { loading, session, access } = useAuth();
 
-  useEffect(() => {
-    if (!loading) void SplashScreen.hideAsync();
-  }, [loading]);
-
-  if (loading) return null;
+  if (loading) return <SplashScreenArt />;
 
   const signedIn = session !== null;
 

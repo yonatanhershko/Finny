@@ -93,7 +93,7 @@ export default function TodayScreen() {
               accessibilityLabel={t('today.addExpense')}
               className="min-h-[64px] flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-accent active:opacity-80"
               onPress={() => router.push({ pathname: '/add', params: { type: 'expense' } })}>
-              <Icon name="arrow-up" tone="onAccent" />
+              <Icon name="arrow-down" tone="onAccent" />
               <AppText weight="bold" tone="onAccent" className="text-[19px]">
                 {t('common.expense')}
               </AppText>
@@ -103,7 +103,7 @@ export default function TodayScreen() {
               accessibilityLabel={t('today.addIncome')}
               className="min-h-[64px] flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-80"
               onPress={() => router.push({ pathname: '/add', params: { type: 'income' } })}>
-              <Icon name="arrow-down" tone="onPrimary" />
+              <Icon name="arrow-up" tone="onPrimary" />
               <AppText weight="bold" tone="onPrimary" className="text-[19px]">
                 {t('common.income')}
               </AppText>

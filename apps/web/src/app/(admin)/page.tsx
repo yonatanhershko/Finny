@@ -40,7 +40,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-3xl font-bold">Admin dashboard</h1>
+        <h1 className="text-2xl font-bold md:text-3xl">Admin dashboard</h1>
         <p className="text-text-muted">Manage users, approvals and subscriptions</p>
       </header>
 

@@ -11,13 +11,13 @@ import { Segmented } from '@/components/ui/Segmented';
 import { EmptyState, ErrorState, Loading } from '@/components/ui/States';
 import { useCategoryName, useCurrentPeriod, useDateFormat, useMoney } from '@/data/hooks';
 import { useCategories, useCategoryTotals } from '@/data/queries';
-import { useLanguage } from '@/i18n';
+import { useLayoutRtl } from '@/i18n';
 
 type View_ = 'monthly' | 'yearly';
 
 export default function StatsScreen() {
   const { t } = useTranslation();
-  const language = useLanguage();
+  const rtl = useLayoutRtl();
   const money = useMoney();
   const nameOf = useCategoryName();
   const { dayMonthShort, monthYear } = useDateFormat();
@@ -56,8 +56,8 @@ export default function StatsScreen() {
         ? monthYear(period.start)
         : `${dayMonthShort(period.start)} – ${dayMonthShort(period.end)}`;
 
-  const back = language === 'he' ? 'chevron-right' : 'chevron-left';
-  const forward = language === 'he' ? 'chevron-left' : 'chevron-right';
+  const back = rtl ? 'chevron-right' : 'chevron-left';
+  const forward = rtl ? 'chevron-left' : 'chevron-right';
 
   return (
     <Screen leaves="low" scroll className="px-5 pb-8 pt-3">

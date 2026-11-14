@@ -1,10 +1,11 @@
 import { leafPalette } from '@finny/tokens';
 import { Platform, StyleSheet, View } from 'react-native';
 
-import { isRtl, useLanguage } from '@/i18n';
+import { useLayoutRtl } from '@/i18n';
 import { useTheme } from '@/theme/ThemeProvider';
 
 import { Leaf } from './Leaf';
+import { TopLeaves } from './TopLeaves';
 import { LeafCluster } from './LeafCluster';
 import { Sway } from './Sway';
 
@@ -33,7 +34,7 @@ export function LeafBackground({
   const { theme } = useTheme();
   const opacity = theme === 'dark' ? 0.5 : 0.85;
   // Positions use start/end, so in RTL the art lands on the other side and must mirror too.
-  const rtl = isRtl(useLanguage());
+  const rtl = useLayoutRtl();
   const flip = rtl ? -1 : 1;
   // Native mirrors start/end by itself in RTL. On web, absolute start/end stay
   // physical, so pick the physical side by hand there.
@@ -45,6 +46,10 @@ export function LeafBackground({
       : side === 'start'
         ? { start: inset }
         : { end: inset };
+
+  // The home bell sits in the physical top-left, so the leaves go there in both directions.
+  const physicalLeft =
+    Platform.OS === 'web' ? { left: 0 } : rtl ? { end: 0 } : { start: 0 };
 
   return (
     <View
@@ -61,8 +66,8 @@ export function LeafBackground({
         </View>
       )}
       {topCorner && (
-        <View style={[styles.top, at('start', -20), { transform: [{ scaleX: flip }, { scaleY: -1 }] }]}>
-          <LeafCluster size={92} />
+        <View style={[styles.top, physicalLeft]}>
+          <TopLeaves size={120} />
         </View>
       )}
       {density === 'high' &&
@@ -87,5 +92,5 @@ export function LeafBackground({
 const styles = StyleSheet.create({
   layer: { overflow: 'hidden' },
   bottom: { position: 'absolute', bottom: -14 },
-  top: { position: 'absolute', top: -12, opacity: 0.6 },
+  top: { position: 'absolute', top: 0 },
 });

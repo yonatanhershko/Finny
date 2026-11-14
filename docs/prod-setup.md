@@ -58,3 +58,12 @@ In Supabase Auth settings for prod: turn "Confirm email" off (the app does not s
 ## 4. Before going live
 
 Run through `evals/prod-readiness.md`. Rotate the dev secret key that was pasted in chat.
+
+## Forgot password (email code)
+
+The app asks for the email, then a 6-digit code plus a new password. Supabase must send the code, not a link:
+
+1. Supabase → Authentication → Emails → Templates → **Reset Password**. Put `{{ .Token }}` in the body, for example: `Your Finny code: {{ .Token }}`. The default template has only a link.
+2. Supabase → Authentication → SMTP Settings → turn on **custom SMTP**. The built-in sender only mails project team members and allows a few mails per hour, so real clients never get the code.
+   - Free option: Resend (3,000 mails/month; needs a domain you own) or Brevo (300/day).
+3. Do this for the dev project to test, and again for prod.

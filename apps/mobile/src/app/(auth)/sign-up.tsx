@@ -1,24 +1,29 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, Pressable, View } from 'react-native';
 
 import { useAuth } from '@/auth/AuthProvider';
+import { resetTermsRead, useTermsRead } from '@/auth/terms';
 import { checkEmail, checkName, checkPassword, MIN_PASSWORD_LENGTH } from '@/auth/validation';
 import { WalletHero } from '@/components/nature/WalletHero';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
+import { HugIcon } from '@/components/ui/HugIcon';
+import { Icon } from '@/components/ui/Icon';
 import { Screen } from '@/components/ui/Screen';
 import { TextField } from '@/components/ui/TextField';
+import { useTheme } from '@/theme/ThemeProvider';
 
 const STEPS = ['name', 'email', 'password'] as const;
 
 /**
- * Register in three short steps. The wallet and its leaves stay on screen
+ * Register in three short steps. The email step also holds the terms tab. The wallet and its leaves stay on screen
  * the whole way; only the field under them changes.
  */
 export default function SignUpScreen() {
   const { t } = useTranslation();
+  const { colors } = useTheme();
   const { signUp } = useAuth();
   const [stepIndex, setStepIndex] = useState(0);
   const [name, setName] = useState('');
@@ -26,6 +31,10 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const termsRead = useTermsRead();
+
+  // Every new sign-up reads the terms again.
+  useEffect(() => resetTermsRead(), []);
 
   const step = STEPS[stepIndex];
 
@@ -34,6 +43,10 @@ export default function SignUpScreen() {
       step === 'name' ? checkName(name) : step === 'email' ? checkEmail(email) : checkPassword(password);
     if (problem) {
       setError(t(problem, { min: MIN_PASSWORD_LENGTH }));
+      return;
+    }
+    if (step === 'email' && !termsRead) {
+      setError(t('terms.readFirst'));
       return;
     }
     setError(null);
@@ -47,7 +60,7 @@ export default function SignUpScreen() {
     // On success the guard moves the new user to the locked (pending) screen.
     if (failure) {
       setError(t(`auth.errors.${failure}`));
-      if (failure === 'emailTaken') setStepIndex(1);
+      if (failure === 'emailTaken' || failure === 'emailInvalid') setStepIndex(1);
     }
   };
 
@@ -81,6 +94,31 @@ export default function SignUpScreen() {
         </View>
 
         <View className="w-full gap-4">
+          {stepIndex > 0 && (
+            <View className="overflow-hidden rounded-lg border border-border bg-surface">
+              {[
+                { index: 0, icon: 'account-outline', value: name.trim() },
+                ...(stepIndex > 1 ? [{ index: 1, icon: 'email-outline', value: email.trim() }] : []),
+              ].map((row) => (
+                <Pressable
+                  key={row.index}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${t('common.edit')}: ${row.value}`}
+                  disabled={busy}
+                  onPress={() => {
+                    setError(null);
+                    setStepIndex(row.index);
+                  }}
+                  className="min-h-[44px] flex-row items-center gap-3 px-4">
+                  <Icon name={row.icon} tone="muted" size={20} />
+                  <AppText className="flex-1 text-[15px]" numberOfLines={1}>
+                    {row.value}
+                  </AppText>
+                  <Icon name="pencil-outline" tone="muted" size={18} />
+                </Pressable>
+              ))}
+            </View>
+          )}
           {step === 'name' && (
             <TextField
               key="name"
@@ -124,14 +162,37 @@ export default function SignUpScreen() {
               autoCapitalize="none"
               autoComplete="new-password"
               textContentType="newPassword"
-              returnKeyType="go"
+              returnKeyType="next"
               onSubmitEditing={next}
             />
+          )}
+          {step === 'email' && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('terms.openLink')}
+              accessibilityState={{ checked: termsRead }}
+              onPress={() => router.push('/terms')}
+              className={`min-h-[52px] flex-row items-center gap-3 rounded-lg border px-4 ${
+                termsRead ? 'border-primary bg-primary' : 'border-border bg-surface'
+              }`}>
+              {termsRead ? (
+                <Icon name="check-circle" tone="onPrimary" />
+              ) : (
+                <HugIcon color={colors.text} />
+              )}
+              <AppText
+                tone={termsRead ? 'onPrimary' : 'text'}
+                weight="medium"
+                className="flex-1 text-[15px]">
+                {termsRead ? t('terms.done') : t('terms.openLink')}
+              </AppText>
+            </Pressable>
           )}
           <Button
             label={step === 'password' ? t('auth.createAccount') : t('common.next')}
             onPress={next}
             loading={busy}
+            disabled={step === 'email' && !termsRead}
           />
           <Button label={t('common.back')} variant="outline" onPress={back} disabled={busy} />
         </View>

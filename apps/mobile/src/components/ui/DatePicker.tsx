@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, View } from 'react-native';
 
 import { useDateFormat } from '@/data/hooks';
-import { useLanguage } from '@/i18n';
+import { useLanguage, useLayoutRtl } from '@/i18n';
 
 import { AppText } from './AppText';
 import { Button } from './Button';
@@ -25,6 +25,7 @@ export function DatePicker({
 }) {
   const { t } = useTranslation();
   const language = useLanguage();
+  const rtl = useLayoutRtl();
   const { monthYear } = useDateFormat();
   const [month, setMonth] = useState(() => startOfMonth(fromISODate(value)));
 
@@ -59,7 +60,7 @@ export function DatePicker({
               accessibilityLabel={t('common.previous')}
               className="h-11 w-11 items-center justify-center"
               onPress={() => setMonth(addMonths(month, -1))}>
-              <Icon name={language === 'he' ? 'chevron-right' : 'chevron-left'} />
+              <Icon name={rtl ? 'chevron-right' : 'chevron-left'} />
             </Pressable>
             <AppText weight="medium" className="text-[16px]">
               {monthYear(toISODate(month))}
@@ -69,7 +70,7 @@ export function DatePicker({
               accessibilityLabel={t('common.nextItem')}
               className="h-11 w-11 items-center justify-center"
               onPress={() => setMonth(addMonths(month, 1))}>
-              <Icon name={language === 'he' ? 'chevron-left' : 'chevron-right'} />
+              <Icon name={rtl ? 'chevron-left' : 'chevron-right'} />
             </Pressable>
           </View>
 

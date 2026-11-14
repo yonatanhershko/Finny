@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 
 import { useAdminAuth } from "@/auth/AdminAuth";
 import { env } from "@/lib/env";
@@ -36,12 +36,34 @@ export function AdminShell({
   const pathname = usePathname();
   const { state, signOut } = useAdminAuth();
   const profile = state.status === "ready" ? state.profile : null;
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <aside className="flex w-64 shrink-0 flex-col justify-between bg-text p-5 text-background">
+    <div className="flex min-h-screen flex-col bg-background md:flex-row">
+      <header className="flex items-center justify-between bg-text px-4 py-3 text-background md:hidden">
+        <div className="flex items-center gap-2">
+          <Logo />
+          <span className="text-xl font-bold">Finny</span>
+        </div>
+        <button
+          type="button"
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={menuOpen}
+          aria-controls="admin-sidebar"
+          onClick={() => setMenuOpen((open) => !open)}
+          className="flex h-11 w-11 items-center justify-center rounded-lg hover:bg-primary/40"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            {menuOpen ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+          </svg>
+        </button>
+      </header>
+      <aside
+        id="admin-sidebar"
+        className={`${menuOpen ? "flex" : "hidden"} w-full shrink-0 flex-col justify-between gap-6 bg-text p-5 pt-2 text-background md:flex md:w-64 md:pt-5`}
+      >
         <div>
-          <div className="mb-8 flex items-center gap-3 px-2">
+          <div className="mb-8 hidden items-center gap-3 px-2 md:flex">
             <Logo />
             <span className="text-2xl font-bold">Finny</span>
           </div>
@@ -52,6 +74,7 @@ export function AdminShell({
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={() => setMenuOpen(false)}
                   aria-current={active ? "page" : undefined}
                   className={`flex items-center justify-between rounded-xl px-4 py-2.5 text-sm font-medium transition ${
                     active ? "bg-primary text-on-primary" : "hover:bg-primary/40"
@@ -84,7 +107,7 @@ export function AdminShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex justify-end px-8 pt-6">
+        <div className="flex justify-end px-4 pt-4 md:px-8 md:pt-6">
           <span
             className={`rounded-lg border px-3 py-1 text-xs font-semibold ${
               env.appEnv === "production"
@@ -95,7 +118,7 @@ export function AdminShell({
             {env.appEnv === "production" ? "Production" : "Development"}
           </span>
         </div>
-        <main className="flex-1 px-8 pb-10">{children}</main>
+        <main className="flex-1 px-4 pb-10 md:px-8">{children}</main>
       </div>
     </div>
   );

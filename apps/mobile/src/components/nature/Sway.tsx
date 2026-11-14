@@ -31,6 +31,8 @@ export type SwayProps = {
   /** One half-swing in milliseconds. */
   duration?: number;
   delay?: number;
+  /** Fake the turn with flat squash instead of real 3D, so it never cuts into siblings. */
+  flat?: boolean;
   style?: StyleProp<ViewStyle>;
 };
 
@@ -43,6 +45,7 @@ export function Sway({
   bob = 4,
   duration = 2800,
   delay = 0,
+  flat = false,
   style,
 }: SwayProps) {
   const reduceMotion = useReducedMotion();
@@ -64,6 +67,19 @@ export function Sway({
 
   const animatedStyle = useAnimatedStyle(() => {
     const p = progress.get();
+    if (flat) {
+      const turnY = (interpolate(p, [0, 1], [-rotateY, rotateY]) * Math.PI) / 180;
+      const turnX = (interpolate(p, [0, 1], [rotateX, -rotateX]) * Math.PI) / 180;
+      return {
+        transform: [
+          { translateY: interpolate(p, [0, 1], [bob, -bob]) },
+          { rotateZ: `${baseRotate + interpolate(p, [0, 1], [-tilt, tilt])}deg` },
+          { scaleX: Math.cos(turnY) },
+          { scaleY: Math.cos(turnX) },
+          { skewY: `${interpolate(p, [0, 1], [-rotateY, rotateY]) * -0.12}deg` },
+        ],
+      };
+    }
     return {
       transform: [
         { perspective: 500 },

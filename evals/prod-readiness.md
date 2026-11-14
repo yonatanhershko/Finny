@@ -23,6 +23,8 @@ Fill in a copy per run: `evals/runs/YYYY-MM-DD.md`.
 - [ ] Dev secret key that was shared in chat has been rotated.
 - [ ] Auth redirect URLs in prod list only prod schemes and domains.
 - [ ] Dev test users do not exist in prod.
+- [ ] Prod Auth: "Confirm email" is off, "Leaked password protection" is on, minimum password length 8.
+- [ ] Prod Auth: custom SMTP is on (same Brevo/Resend account as dev is fine, sender name "Finny") and the Reset Password template contains `{{ .Token }}`.
 
 ## 3. Money correctness (blocker)
 
@@ -41,6 +43,8 @@ Fill in a copy per run: `evals/runs/YYYY-MM-DD.md`.
 - [ ] Daily job flips a past-expiry user to `expired` and the app locks.
 - [ ] Reject → user can submit again.
 - [ ] Reminders fire at 30 and 7 days (tested with a user whose expiry is set to those offsets).
+- [ ] Forgot password on a prod build: code mail arrives (not in spam), code + new password signs in, wrong and expired code show a clear error.
+- [ ] Sign-up on a prod build: typo email is refused on the email step; terms tab must be opened and confirmed before Continue works.
 
 ## 5. App quality
 
@@ -50,6 +54,8 @@ Fill in a copy per run: `evals/runs/YYYY-MM-DD.md`.
 - [ ] Light and dark checked on every screen; contrast ≥ 4.5:1 for text.
 - [ ] Screen reader labels on all controls; touch targets ≥ 44 pt.
 - [ ] Reduce-motion stops the leaf and wallet loops.
+- [ ] Tested on a real iOS device and a real Android device from a production-profile build (not Expo Go): Hebrew phone flips the whole layout to RTL, any other language starts in English, arrows point the right way in both.
+- [ ] Loading screen shows the moving wallet; top-corner leaves and the password eye look right in light and dark.
 - [ ] Add-transaction flow takes no more than four taps from home.
 - [ ] Excel export opens in Excel and Google Sheets with correct Hebrew and amounts.
 
@@ -59,6 +65,8 @@ Fill in a copy per run: `evals/runs/YYYY-MM-DD.md`.
 - [ ] If any social login is offered on iOS, the Apple sign-in requirement is resolved.
 - [ ] Payment outside the app (Bit) is reviewed against current App Store and Play rules for digital subscriptions; decision recorded.
 - [ ] Privacy policy URL and data-safety forms are filled.
+- [ ] Terms of use: final wording from the owner replaces the draft in `i18n/he.json` and `en.json`; `TERMS_VERSION` in `src/auth/terms.ts` bumped.
+- [ ] Store listing gives a way to test: a reviewer account (active, with sample data) and its login in the review notes.
 - [ ] App icons, splash, and screenshots for both stores.
 
 ## 7. Operations

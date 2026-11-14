@@ -13,7 +13,7 @@ import { Screen } from '@/components/ui/Screen';
 import { TextField } from '@/components/ui/TextField';
 import { useMoney } from '@/data/hooks';
 import { useSettings, useUpdateSettings } from '@/data/queries';
-import { changeLanguage, useLanguage } from '@/i18n';
+import { changeLanguage, useLanguage, useLayoutRtl } from '@/i18n';
 import type { Language, ThemePreference } from '@/lib/preferences';
 import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -23,6 +23,7 @@ type Open = null | 'name' | 'language' | 'theme' | 'currency' | 'startDay' | 'bu
 export default function MoreScreen() {
   const { t } = useTranslation();
   const language = useLanguage();
+  const rtl = useLayoutRtl();
   const { preference, setPreference } = useTheme();
   const { profile, signOut, refreshProfile } = useAuth();
   const settings = useSettings();
@@ -61,7 +62,7 @@ export default function MoreScreen() {
   };
   const startDay = settings.data?.month_start_day ?? 1;
   const overall = settings.data?.overall_budget ?? null;
-  const chevron = language === 'he' ? 'chevron-left' : 'chevron-right';
+  const chevron = rtl ? 'chevron-left' : 'chevron-right';
 
   const row = (icon: string, label: string, value: string | null, onPress: () => void, danger = false) => (
     <Pressable
