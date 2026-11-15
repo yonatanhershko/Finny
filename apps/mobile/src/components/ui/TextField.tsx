@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, TextInput, type TextInputProps, View } from 'react-native';
 
-import { useLanguage } from '@/i18n';
+import { useRowAlign } from '@/i18n';
 import { useTheme } from '@/theme/ThemeProvider';
 
 import { AppText } from './AppText';
@@ -18,8 +18,7 @@ export function TextField({ label, error, secureTextEntry, ...props }: TextField
   const { colors } = useTheme();
   const { t } = useTranslation();
   // Typed text follows the language: Hebrew starts at the right, English at the left.
-  const he = useLanguage() === 'he';
-  const direction = { textAlign: he ? 'right' : 'left', writingDirection: he ? 'rtl' : 'ltr' } as const;
+  const direction = useRowAlign().text;
   const [revealed, setRevealed] = useState(false);
   const borderClass = error ? 'border-danger' : 'border-border';
 

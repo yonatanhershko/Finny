@@ -20,7 +20,7 @@ import { Segmented } from '@/components/ui/Segmented';
 import { EmptyState, ErrorState, Loading } from '@/components/ui/States';
 import { useCategoryName, useCurrentPeriod, useDateFormat, useMoney } from '@/data/hooks';
 import { useCategories, useCategoryTotals, useGoalDepositsInPeriod } from '@/data/queries';
-import { useLayoutRtl } from '@/i18n';
+import { useRowAlign } from '@/i18n';
 import { useTheme } from '@/theme/ThemeProvider';
 
 type View_ = 'monthly' | 'yearly';
@@ -28,7 +28,7 @@ type Tab = TransactionType | 'balance';
 
 export default function StatsScreen() {
   const { t } = useTranslation();
-  const rtl = useLayoutRtl();
+  const align = useRowAlign();
   const money = useMoney();
   const { colors } = useTheme();
   const nameOf = useCategoryName();
@@ -102,8 +102,8 @@ export default function StatsScreen() {
         ? monthYear(period.start)
         : `${dayMonthShort(period.start)} – ${dayMonthShort(period.end)}`;
 
-  const back = rtl ? 'chevron-right' : 'chevron-left';
-  const forward = rtl ? 'chevron-left' : 'chevron-right';
+  const back = 'chevron-left';
+  const forward = 'chevron-right';
 
   return (
     <Screen leaves="low" scroll className="px-5 pb-8 pt-3">
@@ -196,7 +196,7 @@ export default function StatsScreen() {
             <EmptyState text={t('stats.empty')} />
           ) : (
             <View className="mt-4 rounded-xl border border-border bg-surface px-4 py-1">
-              <View className="min-h-[48px] flex-row items-center gap-3">
+              <View className={`min-h-[48px] items-center gap-3 ${align.row}`}>
                 <View style={{ width: 12, height: 12 }} />
                 <AppText className="flex-1 text-[15px]">{t('stats.income')}</AppText>
                 <AppText weight="medium" className="text-[15px]">
@@ -208,7 +208,7 @@ export default function StatsScreen() {
                   key={row.key}
                   accessible
                   accessibilityLabel={`${row.label}, ${percentOf(row.value, balanceBase)}%, ${money.format(row.value)}`}
-                  className="min-h-[48px] flex-row items-center gap-3 border-t border-border">
+                  className={`min-h-[48px] items-center gap-3 border-t border-border ${align.row}`}>
                   <View
                     style={{
                       width: 12,
@@ -258,7 +258,7 @@ export default function StatsScreen() {
                     key={row.category_id}
                     accessible
                     accessibilityLabel={`${nameOf(row.category)}, ${share}%, ${money.format(row.total)}`}
-                    className={`min-h-[48px] flex-row items-center gap-3 ${index > 0 ? 'border-t border-border' : ''}`}>
+                    className={`min-h-[48px] items-center gap-3 ${align.row} ${index > 0 ? 'border-t border-border' : ''}`}>
                     <View
                       style={{
                         width: 12,

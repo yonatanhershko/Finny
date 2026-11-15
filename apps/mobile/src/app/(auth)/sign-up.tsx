@@ -13,7 +13,7 @@ import { HugIcon } from '@/components/ui/HugIcon';
 import { Icon } from '@/components/ui/Icon';
 import { Screen } from '@/components/ui/Screen';
 import { TextField } from '@/components/ui/TextField';
-import { useLanguage, useLayoutRtl } from '@/i18n';
+import { useRowAlign } from '@/i18n';
 import { useTheme } from '@/theme/ThemeProvider';
 
 const STEPS = ['name', 'email', 'password'] as const;
@@ -33,9 +33,7 @@ export default function SignUpScreen() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const termsRead = useTermsRead();
-  const he = useLanguage() === 'he';
-  // Icon at the reading start: flip the row when the layout direction and the language disagree.
-  const flipTab = he !== useLayoutRtl();
+  const align = useRowAlign();
 
   // Every new sign-up reads the terms again.
   useEffect(() => resetTermsRead(), []);
@@ -113,7 +111,7 @@ export default function SignUpScreen() {
                     setError(null);
                     setStepIndex(row.index);
                   }}
-                  className="min-h-[44px] flex-row items-center gap-3 px-4">
+                  className={`min-h-[44px] items-center gap-3 px-4 ${align.row}`}>
                   <Icon name={row.icon} tone="muted" size={20} />
                   <AppText className="flex-1 text-[15px]" numberOfLines={1}>
                     {row.value}
@@ -176,7 +174,7 @@ export default function SignUpScreen() {
               accessibilityLabel={t('terms.openLink')}
               accessibilityState={{ checked: termsRead }}
               onPress={() => router.push('/terms')}
-              className={`min-h-[52px] items-center gap-3 rounded-lg border px-4 ${flipTab ? 'flex-row-reverse' : 'flex-row'} ${
+              className={`min-h-[52px] items-center gap-3 rounded-lg border px-4 ${align.row} ${
                 termsRead ? 'border-primary bg-primary' : 'border-border bg-surface'
               }`}>
               {termsRead ? (
@@ -187,8 +185,7 @@ export default function SignUpScreen() {
               <AppText
                 tone={termsRead ? 'onPrimary' : 'text'}
                 weight="medium"
-                className="flex-1 text-[15px]"
-                style={{ textAlign: he ? 'right' : 'left', writingDirection: he ? 'rtl' : 'ltr' }}>
+                className="flex-1 text-[15px]">
                 {termsRead ? t('terms.done') : t('terms.openLink')}
               </AppText>
             </Pressable>

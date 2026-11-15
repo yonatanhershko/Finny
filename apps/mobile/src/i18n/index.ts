@@ -16,9 +16,6 @@ const i18n = createInstance();
 
 export const languages: Language[] = ['he', 'en'];
 const RELOAD_MARK_KEY = 'finny.dirReload';
-const rtlLanguages: Language[] = ['he'];
-
-export const isRtl = (language: Language) => rtlLanguages.includes(language);
 
 /** Hebrew phone -> Hebrew. Any other phone language -> English. */
 export function deviceLanguage(): Language {
@@ -29,41 +26,45 @@ export function deviceLanguage(): Language {
 }
 
 /**
- * Point the layout the right way for the language.
- * Native needs a reload when direction flips; returns true when one was triggered.
+ * The layout never mirrors: same on iPhone, Android and web (owner decision).
+ * Hebrew only changes text alignment and icon/text row order, see `useRowAlign`.
+ * A phone set to Hebrew would otherwise flip everything natively, so switch that off.
+ * Native needs one reload the first time the flag changes; returns true when it happened.
  */
 async function applyDirection(language: Language): Promise<boolean> {
-  const rtl = isRtl(language);
   if (Platform.OS === 'web') {
     if (typeof document !== 'undefined') {
-      document.documentElement.dir = rtl ? 'rtl' : 'ltr';
+      document.documentElement.dir = 'ltr';
       document.documentElement.lang = language;
     }
     return false;
   }
-  I18nManager.allowRTL(true);
-  if (I18nManager.isRTL === rtl) {
+  I18nManager.allowRTL(false);
+  I18nManager.forceRTL(false);
+  if (!I18nManager.isRTL) {
     await AsyncStorage.removeItem(RELOAD_MARK_KEY).catch(() => undefined);
     return false;
   }
-  // One reload per language. If the platform still reports the old direction
-  // after that reload (Expo Go, some dev builds), do not reload again: that loops.
+  // One reload only. If the platform still reports RTL after it, do not loop.
   const tried = await AsyncStorage.getItem(RELOAD_MARK_KEY).catch(() => null);
-  if (tried === language) return false;
-  await AsyncStorage.setItem(RELOAD_MARK_KEY, language).catch(() => undefined);
-  I18nManager.forceRTL(rtl);
+  if (tried === 'ltr') return false;
+  await AsyncStorage.setItem(RELOAD_MARK_KEY, 'ltr').catch(() => undefined);
   await reloadAppAsync();
   return true;
 }
 
-/** Direction the layout really has. On native this can lag the language choice. */
-export function layoutIsRtl(language: Language): boolean {
-  return Platform.OS === 'web' ? isRtl(language) : I18nManager.isRTL;
-}
-
-/** True when the screen is laid out right-to-left right now. Use for icons and art. */
-export function useLayoutRtl(): boolean {
-  return layoutIsRtl(useLanguage());
+/**
+ * Row direction and text alignment for the active language, same on every platform.
+ *  - `row`: use instead of `flex-row` for rows of icon + text (Hebrew: icon at the right).
+ *  - `text`: style for text-like things that are not `AppText` (TextInput).
+ */
+export function useRowAlign() {
+  const he = useLanguage() === 'he';
+  return {
+    he,
+    row: he ? ('flex-row-reverse' as const) : ('flex-row' as const),
+    text: { textAlign: he ? 'right' : 'left', writingDirection: he ? 'rtl' : 'ltr' } as const,
+  };
 }
 
 /** Call once at startup. `saved` is the user's earlier choice, if any. */
@@ -78,15 +79,11 @@ export async function initI18n(saved: Language | null): Promise<void> {
   await applyDirection(language);
 }
 
-/** User picked a language in settings. May reload the app to flip direction. */
+/** User picked a language in settings. No reload: the layout does not flip. */
 export async function changeLanguage(language: Language): Promise<void> {
   await saveLanguagePreference(language);
-  // When the direction has to flip, the app reloads. Do not swap the text first:
-  // the new language would show for a moment in the old direction and read backwards.
-  const willFlip = Platform.OS !== 'web' && I18nManager.isRTL !== isRtl(language);
-  if (!willFlip) await i18n.changeLanguage(language);
-  const reloading = await applyDirection(language);
-  if (willFlip && !reloading) await i18n.changeLanguage(language);
+  await i18n.changeLanguage(language);
+  await applyDirection(language);
 }
 
 export const currentLanguage = (): Language => (i18n.language === 'en' ? 'en' : 'he');

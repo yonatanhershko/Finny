@@ -1,7 +1,6 @@
 import { leafPalette } from '@finny/tokens';
-import { Platform, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { useLayoutRtl } from '@/i18n';
 import { useTabBarHeight } from '@/components/ui/TabBarHeight';
 import { useTheme } from '@/theme/ThemeProvider';
 
@@ -37,23 +36,10 @@ export function LeafBackground({
   const tabBar = useTabBarHeight();
   const lift = tabBar ? { bottom: tabBar - 12 } : null;
   const opacity = theme === 'dark' ? 0.5 : 0.85;
-  // Positions use start/end, so in RTL the art lands on the other side and must mirror too.
-  const rtl = useLayoutRtl();
-  const flip = rtl ? -1 : 1;
-  // Native mirrors start/end by itself in RTL. On web, absolute start/end stay
-  // physical, so pick the physical side by hand there.
-  const at = (side: 'start' | 'end', inset: number) =>
-    Platform.OS === 'web'
-      ? (side === 'start') !== rtl
-        ? { left: inset }
-        : { right: inset }
-      : side === 'start'
-        ? { start: inset }
-        : { end: inset };
-
-  // The home bell sits in the physical top-left, so the leaves go there in both directions.
-  const physicalLeft =
-    Platform.OS === 'web' ? { left: 0 } : rtl ? { end: 0 } : { start: 0 };
+  // The layout never mirrors, so the art sits on fixed physical sides.
+  const at = (side: 'start' | 'end', inset: number) => (side === 'start' ? { left: inset } : { right: inset });
+  // The home bell sits in the physical top-left, so the leaves go there too.
+  const physicalLeft = { left: 0 };
 
   return (
     <View
@@ -61,11 +47,11 @@ export function LeafBackground({
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
       style={[StyleSheet.absoluteFill, styles.layer, { opacity }]}>
-      <View style={[styles.bottom, lift, at('start', -22), { transform: [{ scaleX: flip }] }]}>
+      <View style={[styles.bottom, lift, at('start', -22), { transform: [{ scaleX: 1 }] }]}>
         <LeafCluster size={density === 'low' ? 84 : 104} />
       </View>
       {density !== 'low' && (
-        <View style={[styles.bottom, lift, at('end', -22), { transform: [{ scaleX: -flip }] }]}>
+        <View style={[styles.bottom, lift, at('end', -22), { transform: [{ scaleX: -1 }] }]}>
           <LeafCluster size={88} />
         </View>
       )}

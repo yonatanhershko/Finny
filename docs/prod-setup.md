@@ -55,7 +55,11 @@ where email = 'your-email@example.com';
 
 In Supabase Auth settings for prod: turn "Confirm email" off (the app does not send confirmation emails), and add `finny://` to the allowed redirect URLs.
 
-## 4. Before going live
+## 4. Push notifications
+
+See `docs/notifications-setup.md`.
+
+## 5. Before going live
 
 Run through `evals/prod-readiness.md`. Rotate the dev secret key that was pasted in chat.
 

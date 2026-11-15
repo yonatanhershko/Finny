@@ -214,7 +214,12 @@
     "name": "Goal name",
     "targetAmount": "Target amount",
     "deleteTitle": "Delete {{name}}?",
-    "deleteBody": "The goal and all its deposits are deleted.",
+    "deleteBody": "The goal leaves your list. Its deposits stay in history, stats and the Excel file, unless you delete them too.",
+    "deleteKeep": "Delete goal, keep history",
+    "deleteErase": "Delete goal and its deposits",
+    "depositDeleteTitle": "Delete this deposit?",
+    "depositDeleteBody": "The amount returns to your balance.",
+    "savings": "Savings",
     "errors": {
       "name": "Enter a goal name",
       "target": "Enter a valid target amount"
@@ -234,8 +239,6 @@
     "notSet": "Not set",
     "categories": "Categories",
     "history": "History and export",
-    "reminders": "Reminders",
-    "soon": "Soon",
     "deleteAccount": "Delete account",
     "deleteTitle": "Delete your account?",
     "deleteBody": "All your data is deleted for good: transactions, categories, budgets and goals. This can't be undone.",
@@ -276,11 +279,11 @@
       },
       {
         "title": "4. Subscription and payment",
-        "body": "• Access to Finny is a yearly subscription. The price is shown in the app before you pay.\n• Payment is by Bit. Once the payment is received, the operator approves it by hand, and access opens for one year from the day of approval.\n• The subscription does not renew automatically. You get an in-app reminder 30 days and 7 days before it expires.\n• If the subscription expires and you do not renew, access to the app is blocked until you pay. Your data is not deleted. It is kept until you delete your account.\n• If the price changes, we will tell you in advance. The change does not apply to a subscription you have already paid for."
+        "body": "• Access to Finny is a subscription for a set period. The length and price depend on the option chosen, and are given to you before you pay (by WhatsApp, phone or email).\n• Payment is by Bit. Once the payment is received, the operator approves it by hand, and access opens from the day of approval for the period you paid for.\n• The operator may, at its discretion, grant access without payment or without an expiry date.\n• The subscription does not renew automatically. You get an in-app reminder 30 days and 7 days before it expires.\n• If the subscription expires and you do not renew, access to the app is blocked until you pay. Your data is not deleted. It is kept until you delete your account.\n• If the price changes, we will tell you in advance. The change does not apply to a subscription you have already paid for."
       },
       {
         "title": "5. Cancellation and refunds",
-        "body": "• You can cancel a new subscription within 14 days of payment, under the Israeli Consumer Protection Law. If you received these terms later, the 14 days count from the day you received them.\n• When you cancel this way, we refund your payment minus a cancellation fee of 5% of the price or ₪100, whichever is lower. The refund is sent by Bit within 14 days of your cancellation request.\n• To cancel, email yonher8@gmail.com.\n• After 14 days there is no refund. If you do not want to continue, simply do not renew.\n• If we stop running Finny altogether, we will refund the unused part of your subscription."
+        "body": "• You can cancel a new subscription within 14 days of payment, under the Israeli Consumer Protection Law. If you received these terms later, the 14 days count from the day you received them.\n• When you cancel this way, we refund your payment minus a cancellation fee of 5% of the price or ₪100, whichever is lower. The refund is sent by Bit within 14 days of your cancellation request.\n• To cancel, email yonher8@gmail.com.\n• After 14 days there is no refund. If you do not want to continue, simply do not renew.\n• If we stop running Finny altogether, we will refund the unused part of your subscription.\n• Refunds apply only to a paid subscription."
       },
       {
         "title": "6. Your data",
@@ -326,5 +329,64 @@
   },
   "splash": {
     "loading": "Loading your money…"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "intro": "Pick which notifications you get. You can change this any time.",
+    "soon": "Soon",
+    "subscription": {
+      "title": "Subscription renewal",
+      "body": "A month, a week and a day before your subscription ends, and on the day itself."
+    },
+    "inactivity": {
+      "title": "Tracking reminder",
+      "body": "A light nudge if you haven't opened the app for a few days."
+    },
+    "purchase": {
+      "title": "Purchase detected",
+      "body": "After you pay with Apple Pay or Google Pay, we offer to add the expense."
+    },
+    "off": {
+      "title": "Notifications are off on this phone",
+      "body": "To get notifications from Finny, turn them on in the phone settings.",
+      "openSettings": "Open settings"
+    },
+    "notAsked": {
+      "title": "Notifications aren't on yet",
+      "body": "Allow notifications so the switches below can work.",
+      "allow": "Turn on notifications"
+    },
+    "unsupported": "This device has no notifications.",
+    "pushNote": "Renewal reminders come from the server, so they are always up to date.",
+    "ask": {
+      "title": "Get reminders from Finny?",
+      "body": "We remind you before your subscription ends, and nudge you if you forget to track. No spam, and each one can be switched off.",
+      "allow": "Yes, turn on",
+      "later": "Not now"
+    },
+    "inactive": {
+      "1": {
+        "title": "Where did you go? 🌱",
+        "body": "A few days without tracking. One minute now, a better financial future later."
+      },
+      "2": {
+        "title": "Your wallet misses you",
+        "body": "A quick log of spending and income puts you back in control."
+      },
+      "3": {
+        "title": "Small step, big habit",
+        "body": "Steady tracking is the way to a better financial future. Shall we?"
+      }
+    }
+  },
+  "renew": {
+    "title": "Renew subscription",
+    "endsOn": "Your subscription ends on {{date}}",
+    "daysLeft_one": "1 day left",
+    "daysLeft_other": "{{count}} days left",
+    "noExpiry": "Your access has no end date.",
+    "how": "To renew, contact your advisor on WhatsApp. After the Bit payment your subscription is extended.",
+    "contact": "Contact your advisor on WhatsApp",
+    "whatsappMessage": "Hi, I want to renew my Finny subscription. Name: {{name}}, email: {{email}}"
   }
 }

@@ -339,11 +339,46 @@ export function useSaveGoal() {
   });
 }
 
+/**
+ * Delete a goal. `keep` archives it: gone from the Goals tab, deposits stay in history,
+ * stats and balance. `erase` removes the goal and every deposit for good.
+ */
 export function useDeleteGoal() {
   const client = useQueryClient();
   return useMutation({
+    mutationFn: async (input: { id: string; mode: 'keep' | 'erase' }) => {
+      if (input.mode === 'keep') {
+        unwrap(await supabase.from('goals').update({ archived_at: new Date().toISOString() }).eq('id', input.id).select());
+      } else {
+        unwrap(await supabase.from('goals').delete().eq('id', input.id).select());
+      }
+    },
+    onSuccess: () => client.invalidateQueries({ queryKey: keys.goals }),
+  });
+}
+
+/** Every deposit, newest first. Archived goals' deposits are included. */
+export function useAllDeposits() {
+  return useQuery({
+    queryKey: [...keys.goals, 'deposits', 'all'] as const,
+    queryFn: async () =>
+      unwrap<GoalDeposit[]>(
+        await supabase
+          .from('goal_deposits')
+          .select('*')
+          .order('date', { ascending: false })
+          .order('created_at', { ascending: false })
+          .limit(2000),
+      ),
+  });
+}
+
+/** Delete one deposit. The money returns to the balance. */
+export function useDeleteDeposit() {
+  const client = useQueryClient();
+  return useMutation({
     mutationFn: async (id: string) => {
-      unwrap(await supabase.from('goals').delete().eq('id', id).select());
+      unwrap(await supabase.from('goal_deposits').delete().eq('id', id).select());
     },
     onSuccess: () => client.invalidateQueries({ queryKey: keys.goals }),
   });

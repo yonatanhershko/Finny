@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 
 import { useCategoryName, useDateFormat, useMoney } from '@/data/hooks';
+import { useRowAlign } from '@/i18n';
 
 import { AppText } from './ui/AppText';
 import { CategoryIcon, Icon } from './ui/Icon';
@@ -19,6 +20,7 @@ export function TransactionRow({
   onDelete: () => void;
 }) {
   const { t } = useTranslation();
+  const align = useRowAlign();
   const money = useMoney();
   const nameOf = useCategoryName();
   const { dayMonthShort } = useDateFormat();
@@ -26,18 +28,18 @@ export function TransactionRow({
   const sign = transaction.type === 'income' ? '+' : '';
 
   return (
-    <View className="flex-row items-center rounded-lg border border-border bg-surface">
+    <View className={`items-center rounded-lg border border-border bg-surface ${align.row}`}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`${title}, ${money.format(transaction.amount)}, ${dayMonthShort(transaction.date)}. ${t('common.edit')}`}
         onPress={() => router.push({ pathname: '/add', params: { id: transaction.id } })}
-        className="min-h-[60px] flex-1 flex-row items-center gap-3 py-2 ps-3 active:opacity-70">
+        className={`min-h-[60px] flex-1 items-center gap-3 py-2 active:opacity-70 ${align.row} ${align.he ? 'pr-3' : 'pl-3'}`}>
         <CategoryIcon icon={category?.icon ?? 'tag'} color={category?.color ?? '#8A9099'} size={38} />
         <View className="flex-1">
           <AppText className="text-[15px]" numberOfLines={1}>
             {title}
           </AppText>
-          <View className="flex-row items-center gap-1">
+          <View className={`items-center gap-1 ${align.row}`}>
             <AppText tone="muted" className="text-[12px]">
               {dayMonthShort(transaction.date)} · {nameOf(category)}
             </AppText>

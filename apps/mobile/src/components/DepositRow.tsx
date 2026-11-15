@@ -1,0 +1,57 @@
+import type { Goal, GoalDeposit } from '@finny/shared';
+import { useTranslation } from 'react-i18next';
+import { Pressable, View } from 'react-native';
+
+import { useDateFormat, useMoney } from '@/data/hooks';
+import { useRowAlign } from '@/i18n';
+import { useTheme } from '@/theme/ThemeProvider';
+
+import { AppText } from './ui/AppText';
+import { CategoryIcon, Icon } from './ui/Icon';
+
+/** One goal deposit in history. Not an expense: it is labeled "Savings". Trash deletes just this deposit. */
+export function DepositRow({
+  deposit,
+  goal,
+  onDelete,
+}: {
+  deposit: GoalDeposit;
+  goal: Goal | undefined;
+  onDelete: () => void;
+}) {
+  const { t } = useTranslation();
+  const align = useRowAlign();
+  const money = useMoney();
+  const { colors } = useTheme();
+  const { dayMonthShort } = useDateFormat();
+  const name = goal?.name ?? t('goals.savings');
+
+  return (
+    <View className={`items-center rounded-lg border border-border bg-surface ${align.row}`}>
+      <View
+        accessible
+        accessibilityLabel={`${t('goals.savings')}: ${name}, ${money.format(deposit.amount)}, ${dayMonthShort(deposit.date)}`}
+        className={`min-h-[60px] flex-1 items-center gap-3 py-2 ${align.row} ${align.he ? 'pr-3' : 'pl-3'}`}>
+        <CategoryIcon icon={goal?.icon ?? 'piggy-bank'} color={colors.primary} size={38} />
+        <View className="flex-1">
+          <AppText className="text-[15px]" numberOfLines={1}>
+            {name}
+          </AppText>
+          <AppText tone="muted" className="text-[12px]">
+            {dayMonthShort(deposit.date)} · {t('goals.savings')}
+          </AppText>
+        </View>
+        <AppText weight="medium" tone="primary" className="text-[15px]">
+          {money.format(deposit.amount)}
+        </AppText>
+      </View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${t('common.delete')}: ${name}`}
+        onPress={onDelete}
+        className="h-[60px] w-11 items-center justify-center">
+        <Icon name="trash-can-outline" size={20} tone="muted" />
+      </Pressable>
+    </View>
+  );
+}

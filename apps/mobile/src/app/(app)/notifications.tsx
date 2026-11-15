@@ -1,0 +1,144 @@
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { AppState, Linking, View } from 'react-native';
+
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { AppText } from '@/components/ui/AppText';
+import { Button } from '@/components/ui/Button';
+import { Icon, type IconName } from '@/components/ui/Icon';
+import { Screen } from '@/components/ui/Screen';
+import { Loading } from '@/components/ui/States';
+import { Switch } from '@/components/ui/Switch';
+import { useRowAlign } from '@/i18n';
+import {
+  getPermission,
+  type NotificationKind,
+  type PermissionState,
+  refreshNotifications,
+  requestPermission,
+  setNotificationPref,
+  useNotificationPrefs,
+} from '@/notifications';
+
+/** One switch per kind of notification. Saved on this device. */
+export default function NotificationsScreen() {
+  const { t } = useTranslation();
+  const align = useRowAlign();
+  const prefs = useNotificationPrefs();
+  const [permission, setPermission] = useState<PermissionState | null>(null);
+
+  // The user may change the permission in the phone settings and come back.
+  useEffect(() => {
+    let alive = true;
+    const read = () => void getPermission().then((state) => alive && setPermission(state));
+    read();
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') read();
+    });
+    return () => {
+      alive = false;
+      sub.remove();
+    };
+  }, []);
+
+  const allow = async () => {
+    setPermission(await requestPermission());
+    await refreshNotifications();
+  };
+
+  const item = (
+    icon: IconName,
+    key: NotificationKind | 'purchase',
+    control: { value: boolean; onChange?: (next: boolean) => void },
+  ) => (
+    <View className={`min-h-[76px] items-center gap-3 px-4 py-3 ${align.row}`}>
+      <Icon name={icon} tone="primary" />
+      <View className="flex-1 gap-0.5">
+        <AppText weight="medium" className="text-[16px]">
+          {t(`notifications.${key}.title`)}
+        </AppText>
+        <AppText tone="muted" className="text-[13px] leading-[19px]">
+          {t(`notifications.${key}.body`)}
+        </AppText>
+      </View>
+      {control.onChange ? (
+        <Switch
+          label={t(`notifications.${key}.title`)}
+          value={control.value}
+          onValueChange={control.onChange}
+        />
+      ) : (
+        <AppText tone="muted" className="text-[13px]">
+          {t('notifications.soon')}
+        </AppText>
+      )}
+    </View>
+  );
+
+  const notice = (title: string, body: string, action: { label: string; onPress: () => void }) => (
+    <View className="gap-3 rounded-xl border border-border bg-surface p-4" accessibilityRole="alert">
+      <View className={`items-center gap-3 ${align.row}`}>
+        <Icon name="bell-off-outline" tone="primary" />
+        <AppText weight="medium" className="flex-1 text-[16px]">
+          {title}
+        </AppText>
+      </View>
+      <AppText tone="muted" className="text-[14px] leading-[20px]">
+        {body}
+      </AppText>
+      <Button label={action.label} onPress={action.onPress} />
+    </View>
+  );
+
+  return (
+    <Screen leaves="low" scroll className="gap-4 px-5 pb-8 pt-3">
+      <ScreenHeader title={t('notifications.title')} />
+
+      {permission === null ? (
+        <Loading />
+      ) : (
+        <>
+          <AppText tone="muted" className="text-[14px] leading-[20px]">
+            {t('notifications.intro')}
+          </AppText>
+
+          {permission === 'denied' &&
+            notice(t('notifications.off.title'), t('notifications.off.body'), {
+              label: t('notifications.off.openSettings'),
+              onPress: () => void Linking.openSettings(),
+            })}
+          {permission === 'undetermined' &&
+            notice(t('notifications.notAsked.title'), t('notifications.notAsked.body'), {
+              label: t('notifications.notAsked.allow'),
+              onPress: () => void allow(),
+            })}
+          {permission === 'unsupported' && (
+            <AppText tone="muted" className="text-[14px]">
+              {t('notifications.unsupported')}
+            </AppText>
+          )}
+
+          <View className="overflow-hidden rounded-xl border border-border bg-surface">
+            {item('calendar-clock-outline', 'subscription', {
+              value: prefs.subscription,
+              onChange: (next) => void setNotificationPref('subscription', next),
+            })}
+            <View className="border-t border-border">
+              {item('sprout-outline', 'inactivity', {
+                value: prefs.inactivity,
+                onChange: (next) => void setNotificationPref('inactivity', next),
+              })}
+            </View>
+            <View className="border-t border-border opacity-60">
+              {item('contactless-payment', 'purchase', { value: false })}
+            </View>
+          </View>
+
+          <AppText tone="muted" className="text-[13px] leading-[19px]">
+            {t('notifications.pushNote')}
+          </AppText>
+        </>
+      )}
+    </Screen>
+  );
+}

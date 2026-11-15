@@ -4,6 +4,7 @@ import { createContext, type ReactNode, use, useCallback, useEffect, useState } 
 import { AppState } from 'react-native';
 
 import { supabase } from '@/lib/supabase';
+import { clearNotificationsOnSignOut } from '@/notifications';
 
 import { TERMS_VERSION } from './terms';
 
@@ -174,6 +175,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return error ? toErrorCode(error) : null;
     },
     signOut: async () => {
+      // While still signed in: this device stops getting the user's reminders.
+      await clearNotificationsOnSignOut();
       await supabase.auth.signOut();
     },
     refreshProfile: async () => {

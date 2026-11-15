@@ -13,6 +13,7 @@ import { EmptyState, ErrorState, Loading } from '@/components/ui/States';
 import { TextField } from '@/components/ui/TextField';
 import { useMoney } from '@/data/hooks';
 import { type GoalWithSaved, useDeleteGoal, useDeposit, useGoals, useSaveGoal } from '@/data/queries';
+import { useRowAlign } from '@/i18n';
 
 const GOAL_ICONS = ['flag', 'airplane', 'chart-line', 'home', 'car', 'school', 'beach', 'piggy-bank', 'gift', 'laptop'];
 
@@ -23,6 +24,12 @@ export default function GoalsScreen() {
   const [depositFor, setDepositFor] = useState<GoalWithSaved | null>(null);
   const [deleting, setDeleting] = useState<GoalWithSaved | null>(null);
   const remove = useDeleteGoal();
+  // Deleted goals that kept their deposits are archived: not listed, deposits still count.
+  const active = goals.data?.filter((g) => !g.archived_at) ?? [];
+  const deleteGoal = async (mode: 'keep' | 'erase') => {
+    if (deleting) await remove.mutateAsync({ id: deleting.id, mode }).catch(() => undefined);
+    setDeleting(null);
+  };
 
   return (
     <Screen leaves="low" scroll className="px-5 pb-8 pt-3">
@@ -44,14 +51,14 @@ export default function GoalsScreen() {
         <Loading />
       ) : goals.isError ? (
         <ErrorState onRetry={() => void goals.refetch()} />
-      ) : goals.data?.length === 0 ? (
+      ) : active.length === 0 ? (
         <View className="items-center gap-4">
           <EmptyState text={t('goals.empty')} />
           <Button label={t('goals.add')} onPress={() => setCreating(true)} className="self-stretch" />
         </View>
       ) : (
         <View className="gap-4">
-          {goals.data?.map((goal) => (
+          {active.map((goal) => (
             <GoalCard key={goal.id} goal={goal} onDeposit={() => setDepositFor(goal)} onDelete={() => setDeleting(goal)} />
           ))}
         </View>
@@ -64,15 +71,8 @@ export default function GoalsScreen() {
         title={t('goals.deleteTitle', { name: deleting?.name ?? '' })}
         onClose={() => setDeleting(null)}
         actions={[
-          {
-            label: t('common.delete'),
-            variant: 'accent',
-            loading: remove.isPending,
-            onPress: async () => {
-              if (deleting) await remove.mutateAsync(deleting.id).catch(() => undefined);
-              setDeleting(null);
-            },
-          },
+          { label: t('goals.deleteKeep'), variant: 'accent', loading: remove.isPending, onPress: () => void deleteGoal('keep') },
+          { label: t('goals.deleteErase'), variant: 'outline', disabled: remove.isPending, onPress: () => void deleteGoal('erase') },
           { label: t('common.cancel'), variant: 'outline', onPress: () => setDeleting(null) },
         ]}>
         <AppText className="text-[15px]">{t('goals.deleteBody')}</AppText>
@@ -86,10 +86,11 @@ function GoalCard({ goal, onDeposit, onDelete }: { goal: GoalWithSaved; onDeposi
   const money = useMoney();
   const percent = Math.min(100, Math.floor(percentOf(goal.saved, goal.target_amount)));
   const reached = goal.saved >= goal.target_amount;
+  const align = useRowAlign();
 
   return (
     <View className="rounded-xl border border-border bg-surface p-4">
-      <View className="flex-row items-start justify-between">
+      <View className={`items-start justify-between ${align.row}`}>
         <View className="flex-1">
           <AppText weight="bold" className="text-[19px]">
             {goal.name}
@@ -107,7 +108,7 @@ function GoalCard({ goal, onDeposit, onDelete }: { goal: GoalWithSaved; onDeposi
         accessibilityValue={{ min: 0, max: 100, now: percent }}>
         <View className={`h-full rounded-full ${reached ? 'bg-success' : 'bg-primary'}`} style={{ width: `${percent}%` }} />
       </View>
-      <View className="mt-2 flex-row justify-between">
+      <View className={`mt-2 justify-between ${align.row}`}>
         <AppText className="text-[15px]">{t('goals.saved', { amount: money.format(goal.saved) })}</AppText>
         <AppText weight="medium" className="text-[15px]">
           {percent}%

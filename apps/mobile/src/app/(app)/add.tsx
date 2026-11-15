@@ -1,4 +1,4 @@
-import { amountToInput, formatMoney, parseAmount, type RepeatFrequency, splitInstallments, todayISO } from '@finny/shared';
+import { amountToInput, parseAmount, type RepeatFrequency, splitInstallments, todayISO } from '@finny/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +14,7 @@ import { Icon } from '@/components/ui/Icon';
 import { Loading } from '@/components/ui/States';
 import { TextField } from '@/components/ui/TextField';
 import { useDateFormat, useMoney } from '@/data/hooks';
+import { useKeyboardVisible } from '@/lib/keyboard';
 import {
   type Repeat,
   useAddTransaction,
@@ -38,6 +39,8 @@ function closeSheet() {
 export default function AddTransactionSheet() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  // With the keyboard open it already covers the home-indicator area: no gap between sheet and keys.
+  const keyboardOpen = useKeyboardVisible();
   const params = useLocalSearchParams<{ type?: string; id?: string }>();
   const editing = useTransaction(params.id);
   const categories = useCategories();
@@ -112,7 +115,7 @@ export default function AddTransactionSheet() {
         <Pressable
           onPress={(e) => e.stopPropagation()}
           className="max-h-[92%] rounded-t-xl bg-background"
-          style={{ paddingBottom: insets.bottom + 12 }}
+          style={{ paddingBottom: keyboardOpen ? 0 : insets.bottom + 12 }}
           accessibilityViewIsModal>
           <View className="flex-row items-center justify-between px-5 pb-2 pt-4">
             <View
@@ -221,12 +224,12 @@ export default function AddTransactionSheet() {
                           {preview[0] === preview[preview.length - 1]
                             ? t('add.installmentsEven', {
                                 count: preview.length,
-                                each: formatMoney(preview[0], money.currency),
+                                each: money.format(preview[0]),
                               })
                             : t('add.installmentsUneven', {
                                 count: preview.length,
-                                first: formatMoney(preview[0], money.currency),
-                                each: formatMoney(preview[1], money.currency),
+                                first: money.format(preview[0]),
+                                each: money.format(preview[1]),
                               })}
                         </AppText>
                       )}

@@ -13,21 +13,8 @@ import { CategoryIcon, Icon } from '@/components/ui/Icon';
 import { EmptyState, ErrorState, Loading } from '@/components/ui/States';
 import { useCategoryName, useCurrentPeriod, useDateFormat, useMoney } from '@/data/hooks';
 import { useCategories, useCategoryTotals, useGoalDepositsInPeriod, useGoals, useSettings } from '@/data/queries';
-import { useLanguage, useLayoutRtl } from '@/i18n';
+import { useRowAlign } from '@/i18n';
 import { useTheme } from '@/theme/ThemeProvider';
-
-/**
- * Hebrew must read from the right. Expo Go keeps LTR layout with Hebrew text, so rows are
- * flipped by hand there; a real RTL layout already flips them.
- */
-function useRowAlign() {
-  const he = useLanguage() === 'he';
-  const flip = he !== useLayoutRtl();
-  return {
-    row: flip ? 'flex-row-reverse' : 'flex-row',
-    text: { textAlign: he ? 'right' : 'left', writingDirection: he ? 'rtl' : 'ltr' } as const,
-  };
-}
 
 export default function TodayScreen() {
   const { t } = useTranslation();
@@ -89,9 +76,9 @@ export default function TodayScreen() {
           <View className="h-11 flex-row items-center justify-end">
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={t('more.reminders')}
+              accessibilityLabel={t('notifications.title')}
               className="h-11 w-11 items-center justify-center"
-              onPress={() => router.push('/more')}>
+              onPress={() => router.push('/notifications')}>
               <Icon name="bell-outline" size={24} tone="primary" />
             </Pressable>
           </View>
@@ -154,7 +141,7 @@ export default function TodayScreen() {
             </Pressable>
           </View>
 
-          <AppText weight="medium" className="mb-2 mt-6 text-[17px]" style={align.text}>
+          <AppText weight="medium" className="mb-2 mt-6 text-[17px]">
             {t('today.categoriesThisPeriod')}
           </AppText>
 
@@ -174,7 +161,7 @@ export default function TodayScreen() {
 
           {depositCards.length > 0 && (
             <>
-              <AppText weight="medium" className="mb-2 mt-6 text-[17px]" style={align.text}>
+              <AppText weight="medium" className="mb-2 mt-6 text-[17px]">
                 {t('today.depositsThisPeriod')}
               </AppText>
               <View className="gap-3">
@@ -194,7 +181,7 @@ export default function TodayScreen() {
 
           {incomeCards.length > 0 && (
             <>
-              <AppText weight="medium" className="mb-2 mt-6 text-[17px]" style={align.text}>
+              <AppText weight="medium" className="mb-2 mt-6 text-[17px]">
                 {t('today.incomeSection')}
               </AppText>
               <View className="gap-3">
@@ -241,10 +228,10 @@ function SummaryCard({
       className={`items-center gap-3 rounded-xl border border-border bg-surface p-3 active:opacity-80 ${align.row}`}>
       <CategoryIcon icon={icon} color={color} />
       <View className="flex-1">
-        <AppText weight="medium" className="text-[17px]" numberOfLines={1} style={align.text}>
+        <AppText weight="medium" className="text-[17px]" numberOfLines={1}>
           {name}
         </AppText>
-        <AppText tone="muted" className="text-[14px]" style={align.text}>
+        <AppText tone="muted" className="text-[14px]">
           {money.format(amount)}
         </AppText>
       </View>
@@ -284,11 +271,10 @@ function CategoryCard({ category, spent }: { category: Category; spent: number }
             weight="medium"
             tone={over ? 'danger' : 'text'}
             className="text-[17px]"
-            numberOfLines={1}
-            style={align.text}>
+            numberOfLines={1}>
             {name}
           </AppText>
-          <AppText tone={over ? 'danger' : 'muted'} className="text-[14px]" style={align.text}>
+          <AppText tone={over ? 'danger' : 'muted'} className="text-[14px]">
             {budget === null
               ? money.format(spent)
               : t('today.spentOf', {

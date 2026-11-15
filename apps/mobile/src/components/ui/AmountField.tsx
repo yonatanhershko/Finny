@@ -1,8 +1,8 @@
 import { currencySymbol } from '@finny/shared';
-import { TextInput, View } from 'react-native';
+import { type ComponentRef, useRef } from 'react';
+import { Pressable, TextInput } from 'react-native';
 
 import { useMoney } from '@/data/hooks';
-import { useLanguage, useLayoutRtl } from '@/i18n';
 import { useTheme } from '@/theme/ThemeProvider';
 
 import { AppText } from './AppText';
@@ -31,22 +31,26 @@ export function AmountField({
 }) {
   const { colors } = useTheme();
   const { currency } = useMoney();
+  const input = useRef<ComponentRef<typeof TextInput>>(null);
   const large = size === 'large';
-  // The amount sits at the reading start: right in Hebrew, left in English.
-  // A mirrored (real RTL) row flips start/end by itself, so account for it.
-  const he = useLanguage() === 'he';
-  // Size the box to the digits so the sign sits right next to the number.
+  // Numbers always start at the left, in both languages.
+  // Size the input to the digits so the sign sits right next to the number.
   const inputWidth = Math.max(1, value.length) * (large ? 21 : 12) + 8;
-  const side = he === useLayoutRtl() ? 'justify-start' : 'justify-end';
   return (
-    <View
-      className={`flex-row items-center ${side} gap-2 rounded-lg border border-border bg-surface px-4 ${
+    // The whole box is the tap target: a tap anywhere in it focuses the input.
+    <Pressable
+      accessible={false}
+      onPress={() => input.current?.focus()}
+      // The sign is always left of the number, in Hebrew and English, on every device.
+      style={{ direction: 'ltr' }}
+      className={`flex-row items-center justify-start gap-2 rounded-lg border border-border bg-surface px-4 ${
         large ? 'min-h-[68px]' : 'min-h-[52px]'
       }`}>
       <AppText weight="bold" className={large ? 'text-[30px]' : 'text-[18px]'}>
         {currencySymbol[currency]}
       </AppText>
       <TextInput
+        ref={input}
         accessibilityLabel={label}
         value={value}
         onChangeText={(text) => onChangeText(cleanAmountInput(text))}
@@ -56,8 +60,8 @@ export function AmountField({
         placeholder="0"
         placeholderTextColor={colors.textMuted}
         className={`font-rubik-bold text-text outline-none ${large ? 'text-[34px]' : 'text-[18px]'}`}
-        style={{ width: inputWidth, textAlign: he ? 'right' : 'left', writingDirection: 'ltr' }}
+        style={{ width: inputWidth, textAlign: 'left', writingDirection: 'ltr' }}
       />
-    </View>
+    </Pressable>
   );
 }

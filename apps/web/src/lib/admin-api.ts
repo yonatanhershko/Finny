@@ -1,4 +1,5 @@
 import type {
+  AccessMonths,
   AccessPlan,
   AccountStatus,
   DashboardStats,
@@ -58,14 +59,26 @@ async function run(
   if (error) throw new Error(error.message);
 }
 
-export const approveUser = (userId: string, plan: AccessPlan) =>
-  run(supabase.rpc("admin_approve_user", { p_user_id: userId, p_plan: plan }));
+export const approveUser = (
+  userId: string,
+  plan: AccessPlan,
+  months: AccessMonths,
+) =>
+  run(
+    supabase.rpc("admin_approve_user", {
+      p_user_id: userId,
+      p_plan: plan,
+      p_months: months,
+    }),
+  );
 
 export const rejectUser = (userId: string) =>
   run(supabase.rpc("admin_reject_user", { p_user_id: userId }));
 
-export const extendUser = (userId: string) =>
-  run(supabase.rpc("admin_extend_user", { p_user_id: userId }));
+export const extendUser = (userId: string, months: AccessMonths) =>
+  run(
+    supabase.rpc("admin_extend_user", { p_user_id: userId, p_months: months }),
+  );
 
 export const setUserPlan = (userId: string, plan: AccessPlan) =>
   run(supabase.rpc("admin_set_plan", { p_user_id: userId, p_plan: plan }));

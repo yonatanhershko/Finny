@@ -13,7 +13,7 @@ import { Screen } from '@/components/ui/Screen';
 import { TextField } from '@/components/ui/TextField';
 import { useMoney } from '@/data/hooks';
 import { useSettings, useUpdateSettings } from '@/data/queries';
-import { changeLanguage, useLanguage, useLayoutRtl } from '@/i18n';
+import { changeLanguage, useLanguage, useRowAlign } from '@/i18n';
 import type { Language, ThemePreference } from '@/lib/preferences';
 import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -23,7 +23,7 @@ type Open = null | 'name' | 'language' | 'theme' | 'currency' | 'startDay' | 'bu
 export default function MoreScreen() {
   const { t } = useTranslation();
   const language = useLanguage();
-  const rtl = useLayoutRtl();
+  const align = useRowAlign();
   const { preference, setPreference } = useTheme();
   const { profile, signOut, refreshProfile } = useAuth();
   const settings = useSettings();
@@ -62,14 +62,14 @@ export default function MoreScreen() {
   };
   const startDay = settings.data?.month_start_day ?? 1;
   const overall = settings.data?.overall_budget ?? null;
-  const chevron = rtl ? 'chevron-left' : 'chevron-right';
+  const chevron = align.he ? 'chevron-left' : 'chevron-right';
 
   const row = (icon: string, label: string, value: string | null, onPress: () => void, danger = false) => (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={value ? `${label}: ${value}` : label}
       onPress={onPress}
-      className="min-h-[56px] flex-row items-center gap-3 px-4 active:opacity-70">
+      className={`min-h-[56px] items-center gap-3 px-4 active:opacity-70 ${align.row}`}>
       <Icon name={icon} tone={danger ? 'danger' : 'primary'} />
       <AppText tone={danger ? 'danger' : 'text'} className="flex-1 text-[16px]">
         {label}
@@ -103,7 +103,7 @@ export default function MoreScreen() {
             accessibilityRole="radio"
             accessibilityState={{ selected }}
             onPress={() => pick(option.value)}
-            className={`min-h-[48px] flex-row items-center justify-between rounded-lg border px-4 ${
+            className={`min-h-[48px] items-center justify-between rounded-lg border px-4 ${align.row} ${
               selected ? 'border-primary bg-leaf-light' : 'border-border bg-surface'
             }`}>
             <AppText className="text-[16px]">{option.label}</AppText>
@@ -147,20 +147,14 @@ export default function MoreScreen() {
       ])}
 
       {group([
-        <View key="reminders" className="min-h-[56px] flex-row items-center gap-3 px-4 opacity-60">
-          <Icon name="bell-outline" tone="primary" />
-          <AppText className="flex-1 text-[16px]">{t('more.reminders')}</AppText>
-          <AppText tone="muted" className="text-[13px]">
-            {t('more.soon')}
-          </AppText>
-        </View>,
+        row('bell-outline', t('notifications.title'), null, () => router.push('/notifications')),
         row('trash-can-outline', t('more.deleteAccount'), null, () => show('delete'), true),
       ])}
 
       <Pressable
         accessibilityRole="button"
         onPress={() => void signOut()}
-        className="min-h-[56px] flex-row items-center gap-3 rounded-xl border border-danger bg-danger-surface px-4 active:opacity-70">
+        className={`min-h-[56px] items-center gap-3 rounded-xl border border-danger bg-danger-surface px-4 active:opacity-70 ${align.row}`}>
         <Icon name="logout" tone="danger" />
         <AppText tone="danger" weight="medium" className="text-[16px]">
           {t('auth.signOut')}

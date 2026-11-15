@@ -9,6 +9,9 @@ import type { ExpoConfig } from 'expo/config';
 const variant = process.env.APP_VARIANT === 'production' ? 'production' : 'development';
 const isProd = variant === 'production';
 
+// Needed for push tokens. Printed by `npx eas-cli init`; not a secret. See docs/notifications-setup.md.
+const easProjectId = process.env.EAS_PROJECT_ID;
+
 const bundleId = isProd ? 'com.finny.app' : 'com.finny.app.dev';
 
 const config: ExpoConfig = {
@@ -21,7 +24,11 @@ const config: ExpoConfig = {
   userInterfaceStyle: 'automatic',
   ios: {
     bundleIdentifier: bundleId,
+    // Optional: signing team for local device builds, set per machine (APPLE_TEAM_ID=...). Not stored in git.
+    appleTeamId: process.env.APPLE_TEAM_ID,
     supportsTablet: false,
+    // No custom encryption (HTTPS only), so App Store Connect skips the export-compliance question.
+    infoPlist: { ITSAppUsesNonExemptEncryption: false },
   },
   android: {
     package: bundleId,
@@ -40,6 +47,8 @@ const config: ExpoConfig = {
   plugins: [
     'expo-router',
     'expo-secure-store',
+    // Push + local notifications. The small Android status-bar icon is the default one for now.
+    'expo-notifications',
     ['expo-localization', { supportedLocales: { ios: ['he', 'en'], android: ['he', 'en'] } }],
     [
       'expo-splash-screen',
@@ -57,6 +66,7 @@ const config: ExpoConfig = {
   extra: {
     appVariant: variant,
     supportsRTL: true,
+    ...(easProjectId ? { eas: { projectId: easProjectId } } : {}),
   },
 };
 

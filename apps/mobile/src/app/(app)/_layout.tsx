@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 
 import { materializeRecurring } from '@/data/queries';
+import { NotificationSetup } from '@/notifications/NotificationSetup';
 import { useTheme } from '@/theme/ThemeProvider';
 
 /**
@@ -32,17 +33,27 @@ function AppStack() {
   }, [client]);
 
   return (
+    <>
+    <NotificationSetup />
     <Stack
-      screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.background },
+        // Swipe sideways to go back, from anywhere on the screen (iOS) or the edge (Android).
+        gestureEnabled: true,
+        fullScreenGestureEnabled: true,
+      }}>
       <Stack.Screen name="(tabs)" />
       <Stack.Screen
         name="add"
         options={{
           presentation: 'transparentModal',
           animation: 'slide_from_bottom',
+          fullScreenGestureEnabled: false,
           contentStyle: { backgroundColor: 'transparent' },
         }}
       />
     </Stack>
+    </>
   );
 }

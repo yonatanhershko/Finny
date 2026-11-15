@@ -13,11 +13,17 @@ import { useLanguage } from '@/i18n';
 
 import { useSettings } from './queries';
 
-/** Money formatting with the user's chosen sign. The sign is display only. */
+/** Left-to-right mark: keeps "₪ 1,850" in that order inside Hebrew text, on iPhone and Android. */
+const LRM = '\u200E';
+
+/**
+ * Money formatting with the user's chosen sign. The sign is display only.
+ * The sign always sits left of the number, in Hebrew and in English.
+ */
 export function useMoney() {
   const { data } = useSettings();
   const currency: Currency = data?.currency ?? 'ILS';
-  return { currency, format: (minor: number) => formatMoney(minor, currency) };
+  return { currency, format: (minor: number) => `${LRM}${formatMoney(minor, currency)}${LRM}` };
 }
 
 /** The budget month that contains today, by the user's start day. */

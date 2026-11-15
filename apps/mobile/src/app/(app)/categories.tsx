@@ -16,12 +16,14 @@ import { Segmented } from '@/components/ui/Segmented';
 import { ErrorState, Loading } from '@/components/ui/States';
 import { useCategoryName, useMoney } from '@/data/hooks';
 import { useCategories, useRemoveCategory, useSaveCategory } from '@/data/queries';
+import { useRowAlign } from '@/i18n';
 
 type Draft = { id?: string; name: string; icon: string; color: string; budget: string };
 
 /** Add, rename, restyle, budget, reorder and remove categories, per type. */
 export default function CategoriesScreen() {
   const { t } = useTranslation();
+  const align = useRowAlign();
   const money = useMoney();
   const nameOf = useCategoryName();
   const categories = useCategories();
@@ -103,12 +105,12 @@ export default function CategoriesScreen() {
           <ErrorState onRetry={() => void categories.refetch()} />
         ) : (
           list.map((category, index) => (
-            <View key={category.id} className="flex-row items-center rounded-lg border border-border bg-surface ps-3">
+            <View key={category.id} className={`items-center rounded-lg border border-border bg-surface ${align.row} ${align.he ? 'pr-3' : 'pl-3'}`}>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={`${nameOf(category)}. ${t('common.edit')}`}
                 onPress={() => openEdit(category)}
-                className="min-h-[60px] flex-1 flex-row items-center gap-3 py-2">
+                className={`min-h-[60px] flex-1 items-center gap-3 py-2 ${align.row}`}>
                 <CategoryIcon icon={category.icon} color={category.color} size={38} />
                 <View className="flex-1">
                   <AppText className="text-[16px]" numberOfLines={1}>

@@ -1,4 +1,4 @@
-import type { AccessPlan, AccountStatus } from "@finny/shared";
+import type { AccessMonths, AccessPlan, AccountStatus } from "@finny/shared";
 
 const dateFormat = new Intl.DateTimeFormat("en-GB", {
   day: "2-digit",
@@ -18,9 +18,14 @@ export const statusLabel: Record<AccountStatus, string> = {
 };
 
 export const planLabel: Record<AccessPlan, string> = {
-  paid: "Paid (1 year)",
-  vip: "VIP (1 year, no payment)",
+  paid: "Paid",
+  vip: "VIP (no payment)",
   family: "Family (no expiry)",
+};
+
+export const monthsLabel: Record<AccessMonths, string> = {
+  12: "1 year",
+  2: "2 months",
 };
 
 export const planShort: Record<AccessPlan, string> = {

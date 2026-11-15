@@ -6,6 +6,8 @@
 export type UserRole = 'client' | 'admin';
 export type AccountStatus = 'pending_approval' | 'active' | 'expired' | 'rejected';
 export type AccessPlan = 'paid' | 'vip' | 'family';
+/** How long the admin opens access for: 12 = one year (365 days), 2 = two calendar months. */
+export type AccessMonths = 12 | 2;
 
 export type Profile = {
   id: string;
@@ -107,6 +109,8 @@ export type Goal = {
   name: string;
   target_amount: number;
   icon: string;
+  /** Set when the user deleted the goal but kept its deposits. */
+  archived_at: string | null;
   created_at: string;
 };
 
@@ -153,9 +157,12 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
-      admin_approve_user: { Args: { p_user_id: string; p_plan?: AccessPlan }; Returns: Profile };
+      admin_approve_user: {
+        Args: { p_user_id: string; p_plan?: AccessPlan; p_months?: AccessMonths };
+        Returns: Profile;
+      };
       admin_reject_user: { Args: { p_user_id: string }; Returns: Profile };
-      admin_extend_user: { Args: { p_user_id: string }; Returns: Profile };
+      admin_extend_user: { Args: { p_user_id: string; p_months?: AccessMonths }; Returns: Profile };
       admin_set_plan: { Args: { p_user_id: string; p_plan: AccessPlan }; Returns: Profile };
       admin_dashboard_stats: { Args: Record<never, never>; Returns: DashboardStats };
       request_approval: { Args: Record<never, never>; Returns: Profile };
@@ -188,6 +195,11 @@ export type Database = {
       category_totals: { Args: { p_from: string; p_to: string }; Returns: CategoryTotal[] };
       goal_totals: { Args: Record<never, never>; Returns: GoalTotal[] };
       delete_account: { Args: Record<never, never>; Returns: undefined };
+      register_push_token: {
+        Args: { p_token: string; p_platform: string; p_language: string; p_subscription_reminders: boolean };
+        Returns: undefined;
+      };
+      unregister_push_token: { Args: { p_token: string }; Returns: undefined };
     };
     Enums: {
       user_role: UserRole;

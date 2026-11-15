@@ -12,7 +12,15 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
-    "test:db": "node supabase/tests/access.test.mjs && node supabase/tests/money.test.mjs"
+    "test:db": "node supabase/tests/access.test.mjs && node supabase/tests/money.test.mjs",
+    "setup:android": "bash scripts/setup-android.sh",
+    "setup:ios": "bash scripts/setup-ios.sh",
+    "ios:device": "cd apps/mobile && npx expo run:ios --device",
+    "eas:login": "cd apps/mobile && npx -y eas-cli login",
+    "eas:setup": "cd apps/mobile && npx -y eas-cli init && npx -y eas-cli env:push preview --path .env.development",
+    "build:ios": "cd apps/mobile && npx -y eas-cli build -p ios --profile testflight",
+    "submit:ios": "cd apps/mobile && npx -y eas-cli submit -p ios --profile testflight",
+    "build:android": "cd apps/mobile && npx -y eas-cli build -p android --profile preview"
   },
   "engines": {
     "node": ">=20"

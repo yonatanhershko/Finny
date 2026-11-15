@@ -1,4 +1,4 @@
-import { formatAmount, type Transaction } from '@finny/shared';
+import { formatAmount, type GoalDeposit, type Transaction } from '@finny/shared';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { Platform } from 'react-native';
@@ -7,6 +7,8 @@ export type ExportLabels = {
   headers: { date: string; type: string; category: string; description: string; amount: string };
   income: string;
   expense: string;
+  /** Type label of a goal deposit. */
+  savings: string;
 };
 
 function cell(value: string): string {
@@ -15,28 +17,53 @@ function cell(value: string): string {
   return `"${safe.replace(/"/g, '""')}"`;
 }
 
-/** CSV text that Excel and Google Sheets open directly, Hebrew included. */
+/**
+ * CSV text that Excel and Google Sheets open directly, Hebrew included.
+ * Goal deposits are rows too: type "Savings", category = goal name. Same positive
+ * amount as everywhere; the type says it comes off the balance.
+ */
 export function buildCsv(
   transactions: Transaction[],
+  deposits: GoalDeposit[],
   categoryName: (id: string) => string,
+  goalName: (id: string) => string,
   labels: ExportLabels,
 ): string {
   const h = labels.headers;
+  const rows = [
+    ...transactions.map((tx) => ({
+      date: tx.date,
+      at: tx.created_at,
+      type: tx.type === 'income' ? labels.income : labels.expense,
+      category: categoryName(tx.category_id),
+      description: tx.description,
+      amount: tx.amount,
+    })),
+    ...deposits.map((d) => ({
+      date: d.date,
+      at: d.created_at,
+      type: labels.savings,
+      category: goalName(d.goal_id),
+      description: '',
+      amount: d.amount,
+    })),
+  ].sort((a, b) => (a.date === b.date ? b.at.localeCompare(a.at) : b.date.localeCompare(a.date)));
+
   const lines = [[h.date, h.type, h.category, h.description, h.amount].map(cell).join(',')];
-  for (const tx of transactions) {
+  for (const row of rows) {
     lines.push(
       [
-        cell(tx.date),
-        cell(tx.type === 'income' ? labels.income : labels.expense),
-        cell(categoryName(tx.category_id)),
-        cell(tx.description),
+        cell(row.date),
+        cell(row.type),
+        cell(row.category),
+        cell(row.description),
         // plain number so the sheet can sum it; exact, from integer minor units
-        formatAmount(tx.amount).replace(/,/g, ''),
+        formatAmount(row.amount).replace(/,/g, ''),
       ].join(','),
     );
   }
   // The byte-order mark makes Excel read the file as UTF-8.
-  return `﻿${lines.join('\r\n')}\r\n`;
+  return `\uFEFF${lines.join('\r\n')}\r\n`;
 }
 
 /** Save / share the CSV. Returns false when sharing is not possible on this device. */

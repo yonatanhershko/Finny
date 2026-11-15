@@ -1,6 +1,6 @@
 "use client";
 
-import type { AccessPlan, Profile } from "@finny/shared";
+import type { AccessMonths, AccessPlan, Profile } from "@finny/shared";
 import { useState } from "react";
 
 import {
@@ -9,7 +9,7 @@ import {
   rejectUser,
   setUserPlan,
 } from "@/lib/admin-api";
-import { formatDate, planLabel } from "@/lib/format";
+import { formatDate, monthsLabel, planLabel } from "@/lib/format";
 
 import { Button, PlanBadge, StatusBadge } from "./ui";
 
@@ -40,7 +40,48 @@ function PlanSelect({
   );
 }
 
-/** Plan picker + approve / extend / reject buttons for one user. Shared by table row and card. */
+const durations: AccessMonths[] = [12, 2];
+
+function DurationSelect({
+  value,
+  onChange,
+  label,
+}: {
+  value: AccessMonths;
+  onChange: (months: AccessMonths) => void;
+  label: string;
+}) {
+  return (
+    <select
+      aria-label={label}
+      value={value}
+      onChange={(e) => onChange(Number(e.target.value) as AccessMonths)}
+      className="h-9 rounded-lg border border-border bg-surface px-2 text-sm"
+    >
+      {durations.map((months) => (
+        <option key={months} value={months}>
+          {monthsLabel[months]}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+/**
+ * Expiry the database will set, shown before the admin clicks. Mirrors
+ * access_duration(): 12 = 365 days, 2 = two calendar months.
+ */
+function previewExpiry(user: Profile, months: AccessMonths): string {
+  const now = new Date();
+  const current = user.expires_at ? new Date(user.expires_at) : now;
+  const from = user.status === "active" && current > now ? current : now;
+  const next = new Date(from);
+  if (months === 12) next.setDate(next.getDate() + 365);
+  else next.setMonth(next.getMonth() + months);
+  return formatDate(next.toISOString());
+}
+
+/** Plan + duration pickers and approve / extend / reject buttons for one user. Shared by table row and card. */
 function UserActions({
   user,
   onChanged,
@@ -51,6 +92,7 @@ function UserActions({
   align: "end" | "start";
 }) {
   const [plan, setPlan] = useState<AccessPlan>(user.plan ?? "paid");
+  const [months, setMonths] = useState<AccessMonths>(12);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -85,15 +127,35 @@ function UserActions({
               Set plan
             </Button>
             {user.plan !== "family" && (
-              <Button disabled={busy} onClick={() => act(() => extendUser(user.id))}>
-                Extend 1 year
-              </Button>
+              <>
+                <DurationSelect
+                  value={months}
+                  onChange={setMonths}
+                  label={`Extend ${name} by`}
+                />
+                <Button
+                  disabled={busy}
+                  onClick={() => act(() => extendUser(user.id, months))}
+                >
+                  Extend {monthsLabel[months]}
+                </Button>
+              </>
             )}
           </>
         ) : (
           <>
             <PlanSelect value={plan} onChange={setPlan} label={`Plan for ${name}`} />
-            <Button disabled={busy} onClick={() => act(() => approveUser(user.id, plan))}>
+            {plan !== "family" && (
+              <DurationSelect
+                value={months}
+                onChange={setMonths}
+                label={`Access length for ${name}`}
+              />
+            )}
+            <Button
+              disabled={busy}
+              onClick={() => act(() => approveUser(user.id, plan, months))}
+            >
               {user.status === "expired" ? "Renew" : "Approve"}
             </Button>
             {user.status === "pending_approval" && (
@@ -112,6 +174,14 @@ function UserActions({
           </>
         )}
       </div>
+      {(user.status === "active" ? user.plan !== "family" : plan !== "family") && (
+        <p
+          className={`mt-1 text-xs text-text-muted ${align === "end" ? "text-right" : ""}`}
+        >
+          {user.status === "active" ? "New expiry" : "Access until"}{" "}
+          {previewExpiry(user, months)}
+        </p>
+      )}
       {error && (
         <p
           role="alert"
