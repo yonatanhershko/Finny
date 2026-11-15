@@ -25,13 +25,17 @@ Init → Phase 1 infra → Phase 5 tokens / theme / i18n / leaf art → Phase 2 
 - Renew / extend: new expiry = old `expires_at` + 365 days if still active, otherwise now + 365 days.
 - Rejected users can submit again (status back to `pending_approval`).
 - Expired users keep all data; the app is locked until an admin approves again.
+- Refund (owner 2026-11-15): cancel within 14 days of payment (Consumer Protection Law), refund minus the lower of 5% or ₪100, sent by Bit within 14 days. No refund after 14 days. If Finny shuts down, the unused part is refunded pro rata. Done by hand by the admin, no app flow.
+- No age limit. Under 18 needs a parent's consent to pay (stated in the terms).
+- A blocked user can get their data export by emailing the owner; the in-app export needs access.
 - Daily job: 30 and 7 days before expiry → push reminder. Past expiry → status `expired`.
 - Locked users cannot read or write financial data through the API either (RLS), not only in the UI.
 
 ## Sign-in
 
 - Email + password first. No email confirmation (no email-sending cost).
-- Sign-up has three steps: name, email, password. Earlier steps show as rows with a pencil, so the user can jump back and change the name or email. Under the email field is a "Terms of use" tab: tap it, read to the bottom, press OK, and the tab turns green. Continue stays locked until then. No checkbox. The accepted version and time are saved on the auth user (`terms_version`, `terms_accepted_at`). The terms text in the app is a draft; the owner supplies the final wording. (owner 2026-11-14)
+- Sign-up has three steps: name, email, password. Earlier steps show as rows with a pencil, so the user can jump back and change the name or email. Under the email field is a "Terms of use" tab: tap it, press "I agree" (pinned at the bottom, no need to scroll to the end), and the tab turns green. Continue stays locked until then. No checkbox. The accepted version and time are saved on the auth user (`terms_version`, `terms_accepted_at`). (owner 2026-11-14, no-scroll 2026-11-15)
+- Terms of use: Hebrew + English text in the app i18n files, version `2026-11-15`, approved by the owner 2026-11-15. Bump `TERMS_VERSION` when the text changes. Operator shown as the owner's private name until a business is registered. Contact: email only.
 - Forgot password: from sign-in. Email → 6-digit code sent by email → code + new password. No OTP at sign-up (the admin approval is the gate; clients are personal, a few per month). Needs custom SMTP and a code template, see `docs/prod-setup.md`. (owner 2026-11-14)
 - Google and Facebook sign-in are wired later, when the owner has the developer accounts.
 - Apple sign-in: not wanted. Open issue: App Store requires an equivalent privacy-focused login (Apple) when third-party social login is offered on iOS. Decide when social login goes in.

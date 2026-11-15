@@ -256,33 +256,73 @@
   },
   "terms": {
     "title": "Terms of use",
-    "draftNote": "Draft text. The final wording comes from the Finny owner.",
-    "iRead": "OK, I read the terms",
-    "readFirst": "Open and read the terms to continue",
+    "updated": "Last updated: November 15, 2026",
+    "iRead": "I agree to the terms of use",
+    "readFirst": "Open the terms of use and accept them to continue",
     "openLink": "Read the terms of use",
+    "done": "Terms accepted",
     "sections": [
       {
-        "title": "What Finny is",
-        "body": "Finny is a personal tool to record your income, expenses, budgets and savings goals. It is not financial, tax or investment advice."
+        "title": "1. Who we are",
+        "body": "Finny is a personal-finance app. It is run by Yonatan Hershko as a private individual (the \"operator\", \"we\"). You can reach us by email: yonher8@gmail.com.\nBy signing up for Finny or using it, you agree to these terms and to the privacy policy in section 9. If you do not agree, do not use the app."
       },
       {
-        "title": "Access and payment",
-        "body": "Access is a yearly subscription paid by Bit, outside the app. An admin approves each account by hand. Until approval the app stays locked. When the year ends, the app locks again and your data is kept until you renew."
+        "title": "2. What Finny does",
+        "body": "• Finny helps you log income and expenses, set budgets, save toward goals and see statistics.\n• Finny is a tool for logging and tracking only. It is not financial, investment, tax or legal advice. Your money decisions are your own responsibility. Before a major decision, ask a licensed advisor.\n• Every number in the app is calculated from the data you enter. If the data is wrong, the results will be wrong too.\n• Finny does not connect to your bank account and does not make payments for you."
       },
       {
-        "title": "Your data",
-        "body": "The data you enter belongs to you. It is stored on secure servers and shown only to you. You can delete your account in More; this deletes all your data for good."
+        "title": "3. Sign-up and account",
+        "body": "• You sign up with a name, an email address and a password.\n• Keep your password safe. You are responsible for everything done in your account.\n• There is no age limit. A user under 18 needs a parent's or guardian's consent to pay for a subscription.\n• One account is for one person. You may not transfer or sell an account."
       },
       {
-        "title": "Your account",
-        "body": "Keep your password private. You are responsible for what is entered in your account."
+        "title": "4. Subscription and payment",
+        "body": "• Access to Finny is a yearly subscription. The price is shown in the app before you pay.\n• Payment is by Bit. Once the payment is received, the operator approves it by hand, and access opens for one year from the day of approval.\n• The subscription does not renew automatically. You get an in-app reminder 30 days and 7 days before it expires.\n• If the subscription expires and you do not renew, access to the app is blocked until you pay. Your data is not deleted. It is kept until you delete your account.\n• If the price changes, we will tell you in advance. The change does not apply to a subscription you have already paid for."
       },
       {
-        "title": "Changes",
-        "body": "These terms may change. The version you agree to at sign-up is saved with your account."
+        "title": "5. Cancellation and refunds",
+        "body": "• You can cancel a new subscription within 14 days of payment, under the Israeli Consumer Protection Law. If you received these terms later, the 14 days count from the day you received them.\n• When you cancel this way, we refund your payment minus a cancellation fee of 5% of the price or ₪100, whichever is lower. The refund is sent by Bit within 14 days of your cancellation request.\n• To cancel, email yonher8@gmail.com.\n• After 14 days there is no refund. If you do not want to continue, simply do not renew.\n• If we stop running Finny altogether, we will refund the unused part of your subscription."
+      },
+      {
+        "title": "6. Your data",
+        "body": "• The data you enter belongs to you.\n• Export: while your subscription is active, you can export all your transactions to an Excel file (CSV) from More → History and export. If your access is blocked, email us and we will send you the file.\n• Deletion: you can delete your account at any time from More → Delete account. Deletion is final and cannot be undone. It covers all transactions, categories, budgets, goals and the account itself.\n• We back up the system regularly, but we cannot promise that data will never be lost. Export a backup from time to time."
+      },
+      {
+        "title": "7. Prohibited use",
+        "body": "You may not:\n• Try to access other users' data or get around the subscription lock.\n• Hack, disrupt or overload the system, or run scripts and bots against it.\n• Copy, decompile or reverse engineer the app, except where the law allows it.\n• Use the app for any unlawful purpose."
+      },
+      {
+        "title": "8. Suspension and account closure",
+        "body": "• If you break these terms, we may suspend or close your account. Before that, we will send you a notice and let you explain, unless the breach is serious or puts other users at risk.\n• If your account is closed, you can ask for your data by email."
+      },
+      {
+        "title": "9. Privacy",
+        "body": "What we keep:\n• Your name and email.\n• The transactions, categories, budgets and goals you enter.\n• Your settings: language, theme, currency and reminders.\n• Your subscription status and when you accepted the terms.\n• A push-notification token, if you allowed notifications.\nWhy: only to run the app, manage your subscription and send reminders.\nWhat we do not do: we do not sell data, show ads or share data with marketers.\nWho processes data for us:\n• Supabase hosts the database on cloud servers outside Israel.\n• Expo, Apple and Google deliver notifications.\nSecurity: each user sees only their own data. The connection is encrypted.\nYour rights: you can view, correct, export and delete your data. For any such request, email yonher8@gmail.com."
+      },
+      {
+        "title": "10. Availability and changes to the service",
+        "body": "• We try to keep the app available at all times, but outages and maintenance downtime can happen.\n• We may improve and change the app. If we remove a core feature, we will tell you in advance."
+      },
+      {
+        "title": "11. Liability",
+        "body": "• The app is provided as is. We do our best to keep the calculations correct, but we do not promise there will be no mistakes.\n• To the extent the law allows, our liability is limited to what you paid for the subscription in the 12 months before the event.\n• This limit does not apply to harm caused on purpose or by gross negligence."
+      },
+      {
+        "title": "12. Intellectual property",
+        "body": "The design, code, logo and the name Finny belong to the operator. You get a personal right to use the app while your subscription is active."
+      },
+      {
+        "title": "13. Changes to these terms",
+        "body": "• If we change these terms, we will tell you in the app or by email at least 14 days before the change takes effect.\n• If the change is material, we will ask you to accept the terms again."
+      },
+      {
+        "title": "14. Governing law",
+        "body": "These terms are governed by Israeli law. To the extent the law allows, the competent courts of the Tel Aviv district have jurisdiction."
+      },
+      {
+        "title": "15. Contact",
+        "body": "For any question, request or complaint: yonher8@gmail.com"
       }
-    ],
-    "done": "Terms read"
+    ]
   },
   "splash": {
     "loading": "Loading your money…"

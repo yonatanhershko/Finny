@@ -46,13 +46,16 @@ export async function shareCsv(csv: string, fileName: string): Promise<boolean> 
     const link = document.createElement('a');
     link.href = url;
     link.download = fileName;
+    document.body.appendChild(link);
     link.click();
-    URL.revokeObjectURL(url);
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
     return true;
   }
   const file = new File(Paths.cache, fileName);
   file.create({ overwrite: true });
-  file.write(csv);
+  // Wait for the write: sharing a half-written file gives an empty sheet.
+  await file.write(csv);
   if (!(await Sharing.isAvailableAsync())) return false;
   await Sharing.shareAsync(file.uri, { mimeType: 'text/csv', UTI: 'public.comma-separated-values-text' });
   return true;
