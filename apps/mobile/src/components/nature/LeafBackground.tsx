@@ -2,6 +2,7 @@ import { leafPalette } from '@finny/tokens';
 import { Platform, StyleSheet, View } from 'react-native';
 
 import { useLayoutRtl } from '@/i18n';
+import { useTabBarHeight } from '@/components/ui/TabBarHeight';
 import { useTheme } from '@/theme/ThemeProvider';
 
 import { Leaf } from './Leaf';
@@ -32,6 +33,9 @@ export function LeafBackground({
   topCorner?: boolean;
 }) {
   const { theme } = useTheme();
+  // On tab screens the bar covers the bottom edge: lift the corner leaves so they peek out above it.
+  const tabBar = useTabBarHeight();
+  const lift = tabBar ? { bottom: tabBar - 12 } : null;
   const opacity = theme === 'dark' ? 0.5 : 0.85;
   // Positions use start/end, so in RTL the art lands on the other side and must mirror too.
   const rtl = useLayoutRtl();
@@ -57,11 +61,11 @@ export function LeafBackground({
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
       style={[StyleSheet.absoluteFill, styles.layer, { opacity }]}>
-      <View style={[styles.bottom, at('start', -22), { transform: [{ scaleX: flip }] }]}>
+      <View style={[styles.bottom, lift, at('start', -22), { transform: [{ scaleX: flip }] }]}>
         <LeafCluster size={density === 'low' ? 84 : 104} />
       </View>
       {density !== 'low' && (
-        <View style={[styles.bottom, at('end', -22), { transform: [{ scaleX: -flip }] }]}>
+        <View style={[styles.bottom, lift, at('end', -22), { transform: [{ scaleX: -flip }] }]}>
           <LeafCluster size={88} />
         </View>
       )}

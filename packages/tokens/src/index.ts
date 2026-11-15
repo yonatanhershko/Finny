@@ -14,7 +14,7 @@ export const colors = {
     accent: '#E8A87C',
     onAccent: '#4A2A12',
     text: '#2E3D38',
-    textMuted: '#6B7A74',
+    textMuted: '#485751',
     border: '#E4DFD2',
     danger: '#D64545',
     dangerSurface: '#FCEBEB',
@@ -33,7 +33,7 @@ export const colors = {
     accent: '#E8A87C',
     onAccent: '#3A200D',
     text: '#E9F0EA',
-    textMuted: '#9DB0A6',
+    textMuted: '#B4C6BC',
     border: '#2F4239',
     danger: '#F07C7C',
     dangerSurface: '#3A1F1F',
@@ -46,6 +46,31 @@ export const colors = {
 
 export type ThemeName = keyof typeof colors;
 export type ColorToken = keyof (typeof colors)['light'];
+
+/**
+ * Soft blurred background: the theme's primary + secondary and a white glow.
+ * `base` is the flat color under the blobs. Strengths are tuned so text and
+ * muted text keep 4.5:1 on the darkest (light) / lightest (dark) spot.
+ */
+export const backdrop = {
+  light: {
+    base: '#E6F0E9',
+    glow: '#FFFFFF',
+    glowOpacity: 0.95,
+    secondaryOpacity: 0.55,
+    primaryOpacity: 0.18,
+  },
+  dark: {
+    base: '#16211C',
+    glow: '#E9F0EA',
+    glowOpacity: 0.1,
+    secondaryOpacity: 0.5,
+    primaryOpacity: 0.12,
+  },
+} as const;
+
+/** Which blob layout the background uses: 'a' (soft mesh) or 'b' (diagonal sweep). */
+export const backdropVariant: 'a' | 'b' = 'b';
 
 /** Colors for category icons and chart slices. Same in both themes. */
 export const categoryPalette = [

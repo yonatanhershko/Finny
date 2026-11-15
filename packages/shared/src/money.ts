@@ -61,6 +61,11 @@ export function percentOf(part: number, total: number): number {
   return tenths / 10;
 }
 
+/** Money left in a period: income minus goal deposits minus expenses. Negative means overspent. */
+export function periodBalance(income: number, saved: number, expense: number): number {
+  return income - saved - expense;
+}
+
 /** Budget left. Negative means over budget. */
 export function budgetRemaining(budget: number, spent: number): number {
   return budget - spent;

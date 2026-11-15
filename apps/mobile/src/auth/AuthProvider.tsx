@@ -41,6 +41,11 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 function toErrorCode(error: { code?: string; status?: number; message?: string }): AuthErrorCode {
+  // Dev only: show why Supabase refused, so a vague message in the UI is never a mystery.
+  // Never logs the password or the email.
+  if (__DEV__) {
+    console.warn('[auth] error', { code: error.code, status: error.status, message: error.message });
+  }
   switch (error.code) {
     case 'invalid_credentials':
       return 'invalidCredentials';

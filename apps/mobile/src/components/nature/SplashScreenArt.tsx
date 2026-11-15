@@ -5,6 +5,7 @@ import i18n, { currentLanguage, deviceLanguage } from '@/i18n';
 import en from '@/i18n/en.json';
 import he from '@/i18n/he.json';
 
+import { Backdrop } from './Backdrop';
 import { JumpingText } from './JumpingText';
 import { Sway } from './Sway';
 import { Wallet } from './Wallet';
@@ -28,11 +29,12 @@ export function SplashScreenArt() {
         justifyContent: 'center',
         backgroundColor: tokenColors[scheme].background,
       }}>
+      <Backdrop theme={scheme} />
       <Sway flat rotateY={26} rotateX={7} tilt={2} bob={6} duration={1400}>
         <Wallet size={160} />
       </Sway>
       <View style={{ marginTop: 28 }}>
-        <JumpingText text={label} color={tokenColors[scheme].text} />
+        <JumpingText text={label} color={tokenColors[scheme].text} rtl={language === 'he'} />
       </View>
     </View>
   );

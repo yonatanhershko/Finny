@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, TextInput, type TextInputProps, View } from 'react-native';
 
+import { useLanguage } from '@/i18n';
 import { useTheme } from '@/theme/ThemeProvider';
 
 import { AppText } from './AppText';
@@ -16,6 +17,9 @@ export type TextFieldProps = TextInputProps & {
 export function TextField({ label, error, secureTextEntry, ...props }: TextFieldProps) {
   const { colors } = useTheme();
   const { t } = useTranslation();
+  // Typed text follows the language: Hebrew starts at the right, English at the left.
+  const he = useLanguage() === 'he';
+  const direction = { textAlign: he ? 'right' : 'left', writingDirection: he ? 'rtl' : 'ltr' } as const;
   const [revealed, setRevealed] = useState(false);
   const borderClass = error ? 'border-danger' : 'border-border';
 
@@ -33,6 +37,7 @@ export function TextField({ label, error, secureTextEntry, ...props }: TextField
             className="min-h-[52px] flex-1 font-rubik text-[16px] text-text outline-none"
             secureTextEntry={!revealed}
             {...props}
+            style={[direction, props.style]}
           />
           <Pressable
             onPress={() => setRevealed((value) => !value)}
@@ -49,6 +54,7 @@ export function TextField({ label, error, secureTextEntry, ...props }: TextField
           placeholderTextColor={colors.textMuted}
           className={`min-h-[52px] rounded-lg border bg-surface px-4 font-rubik text-[16px] text-text outline-none ${borderClass}`}
           {...props}
+          style={[direction, props.style]}
         />
       )}
       {error ? (

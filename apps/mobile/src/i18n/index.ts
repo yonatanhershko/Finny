@@ -81,8 +81,12 @@ export async function initI18n(saved: Language | null): Promise<void> {
 /** User picked a language in settings. May reload the app to flip direction. */
 export async function changeLanguage(language: Language): Promise<void> {
   await saveLanguagePreference(language);
-  await i18n.changeLanguage(language);
-  await applyDirection(language);
+  // When the direction has to flip, the app reloads. Do not swap the text first:
+  // the new language would show for a moment in the old direction and read backwards.
+  const willFlip = Platform.OS !== 'web' && I18nManager.isRTL !== isRtl(language);
+  if (!willFlip) await i18n.changeLanguage(language);
+  const reloading = await applyDirection(language);
+  if (willFlip && !reloading) await i18n.changeLanguage(language);
 }
 
 export const currentLanguage = (): Language => (i18n.language === 'en' ? 'en' : 'he');

@@ -2,6 +2,7 @@ import { currencySymbol } from '@finny/shared';
 import { TextInput, View } from 'react-native';
 
 import { useMoney } from '@/data/hooks';
+import { useLanguage, useLayoutRtl } from '@/i18n';
 import { useTheme } from '@/theme/ThemeProvider';
 
 import { AppText } from './AppText';
@@ -31,9 +32,15 @@ export function AmountField({
   const { colors } = useTheme();
   const { currency } = useMoney();
   const large = size === 'large';
+  // The amount sits at the reading start: right in Hebrew, left in English.
+  // A mirrored (real RTL) row flips start/end by itself, so account for it.
+  const he = useLanguage() === 'he';
+  // Size the box to the digits so the sign sits right next to the number.
+  const inputWidth = Math.max(1, value.length) * (large ? 21 : 12) + 8;
+  const side = he === useLayoutRtl() ? 'justify-start' : 'justify-end';
   return (
     <View
-      className={`flex-row items-center justify-center gap-2 rounded-lg border border-border bg-surface px-4 ${
+      className={`flex-row items-center ${side} gap-2 rounded-lg border border-border bg-surface px-4 ${
         large ? 'min-h-[68px]' : 'min-h-[52px]'
       }`}>
       <AppText weight="bold" className={large ? 'text-[30px]' : 'text-[18px]'}>
@@ -48,8 +55,8 @@ export function AmountField({
         autoFocus={autoFocus}
         placeholder="0"
         placeholderTextColor={colors.textMuted}
-        className={`min-w-[80px] font-rubik-bold text-text outline-none ${large ? 'text-[34px]' : 'text-[18px]'}`}
-        style={{ textAlign: 'left' }}
+        className={`font-rubik-bold text-text outline-none ${large ? 'text-[34px]' : 'text-[18px]'}`}
+        style={{ width: inputWidth, textAlign: he ? 'right' : 'left', writingDirection: 'ltr' }}
       />
     </View>
   );

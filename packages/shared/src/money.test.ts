@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
-import { amountToInput, budgetRemaining, formatAmount, formatMoney, parseAmount, percentOf, splitInstallments } from './money';
+import {
+  amountToInput,
+  budgetRemaining,
+  formatAmount,
+  formatMoney,
+  parseAmount,
+  percentOf,
+  periodBalance,
+  splitInstallments,
+} from './money';
 
 describe('parseAmount', () => {
   it('parses whole and decimal amounts into minor units', () => {
@@ -83,5 +92,14 @@ describe('splitInstallments', () => {
     expect(() => splitInstallments(0, 3)).toThrow();
     expect(() => splitInstallments(100, 0)).toThrow();
     expect(() => splitInstallments(10.5, 2)).toThrow();
+  });
+});
+
+describe('periodBalance', () => {
+  it('is income minus deposits minus expenses', () => {
+    expect(periodBalance(800000, 50000, 400000)).toBe(350000);
+  });
+  it('can go negative', () => {
+    expect(periodBalance(100, 0, 250)).toBe(-150);
   });
 });

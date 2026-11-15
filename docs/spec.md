@@ -55,7 +55,9 @@ Init → Phase 1 infra → Phase 5 tokens / theme / i18n / leaf art → Phase 2 
 - Deleting a category: if it has transactions it is archived (hidden from pickers; history and totals keep it). If unused it is deleted. **(assumed)**
 - Goal withdrawals are not in v1; deposits only. **(assumed)**
 - Home lists an expense category when it has spending in the current budget month or has a budget.
+- Balance = income − goal deposits − expenses, for the same budget period (negative allowed). Home shows it under the expense total in place of the income line. Stats has a third tab, Balance, monthly and yearly: the donut splits income into expenses, saved and left (when over, only expenses and saved). **(owner request 2026-11-15, donut split chosen by Claude)**
 - Goals: separate from transactions. A deposit into a goal does not count as an expense and does not change totals or stats.
+- Home shows a "Deposits this month" section under the categories: one card per goal that got a deposit in the current budget month, with the sum deposited that month. Tap opens the Goals tab. Hidden when there are no deposits. The expense total at the top never includes deposits. Below it, an "Income this month" section lists income categories with their sums, same card style; tap opens that category's transactions. **(owner idea 2026-11-15, layout chosen by Claude)**
 - Not in v1: accounts (cash / card), transfers, tags, receipt photos.
 
 ## Screens

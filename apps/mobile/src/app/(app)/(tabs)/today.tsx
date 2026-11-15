@@ -1,27 +1,48 @@
-import { budgetRemaining, type Category, percentOf } from '@finny/shared';
+import { budgetRemaining, type Category, percentOf, periodBalance } from '@finny/shared';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Backdrop } from '@/components/nature/Backdrop';
 import { LeafBackground } from '@/components/nature/LeafBackground';
 import { AppText } from '@/components/ui/AppText';
 import { BudgetBar } from '@/components/ui/BudgetBar';
+import { useTabBarHeight } from '@/components/ui/TabBarHeight';
 import { CategoryIcon, Icon } from '@/components/ui/Icon';
 import { EmptyState, ErrorState, Loading } from '@/components/ui/States';
 import { useCategoryName, useCurrentPeriod, useDateFormat, useMoney } from '@/data/hooks';
-import { useCategories, useCategoryTotals, useSettings } from '@/data/queries';
+import { useCategories, useCategoryTotals, useGoalDepositsInPeriod, useGoals, useSettings } from '@/data/queries';
+import { useLanguage, useLayoutRtl } from '@/i18n';
 import { useTheme } from '@/theme/ThemeProvider';
+
+/**
+ * Hebrew must read from the right. Expo Go keeps LTR layout with Hebrew text, so rows are
+ * flipped by hand there; a real RTL layout already flips them.
+ */
+function useRowAlign() {
+  const he = useLanguage() === 'he';
+  const flip = he !== useLayoutRtl();
+  return {
+    row: flip ? 'flex-row-reverse' : 'flex-row',
+    text: { textAlign: he ? 'right' : 'left', writingDirection: he ? 'rtl' : 'ltr' } as const,
+  };
+}
 
 export default function TodayScreen() {
   const { t } = useTranslation();
-  const { colors } = useTheme();
+  const align = useRowAlign();
+  const { colors, theme } = useTheme();
+  const tabBarHeight = useTabBarHeight();
   const money = useMoney();
+  const nameOf = useCategoryName();
   const { dayMonth } = useDateFormat();
   const { period, today } = useCurrentPeriod();
   const settings = useSettings();
   const categories = useCategories();
   const totals = useCategoryTotals(period);
+  const goals = useGoals();
+  const deposits = useGoalDepositsInPeriod(period);
 
   const loading = settings.isLoading || categories.isLoading || totals.isLoading;
   const failed = settings.isError || categories.isError || totals.isError;
@@ -29,11 +50,16 @@ export default function TodayScreen() {
     void settings.refetch();
     void categories.refetch();
     void totals.refetch();
+    void goals.refetch();
+    void deposits.refetch();
   };
 
   const spentBy = new Map((totals.data ?? []).filter((x) => x.type === 'expense').map((x) => [x.category_id, x.total]));
+  const incomeBy = new Map((totals.data ?? []).filter((x) => x.type === 'income').map((x) => [x.category_id, x.total]));
   const totalExpense = [...spentBy.values()].reduce((a, b) => a + b, 0);
   const totalIncome = (totals.data ?? []).filter((x) => x.type === 'income').reduce((a, x) => a + x.total, 0);
+  const totalSaved = [...(deposits.data?.values() ?? [])].reduce((a, b) => a + b, 0);
+  const balance = periodBalance(totalIncome, totalSaved, totalExpense);
   const overall = settings.data?.overall_budget ?? null;
   const overallLeft = overall === null ? null : budgetRemaining(overall, totalExpense);
 
@@ -42,10 +68,20 @@ export default function TodayScreen() {
     .filter((c) => c.type === 'expense')
     .filter((c) => (spentBy.get(c.id) ?? 0) > 0 || (c.monthly_budget !== null && !c.archived));
 
+  const incomeCards = (categories.data ?? [])
+    .filter((c) => c.type === 'income' && (incomeBy.get(c.id) ?? 0) > 0)
+    .sort((a, b) => (incomeBy.get(b.id) ?? 0) - (incomeBy.get(a.id) ?? 0));
+
+  // Goals that got money this period. Shown apart: deposits are never expenses.
+  const depositCards = (goals.data ?? [])
+    .map((g) => ({ goal: g, amount: deposits.data?.get(g.id) ?? 0 }))
+    .filter((d) => d.amount > 0);
+
   return (
     <View className="flex-1 bg-background">
+      <Backdrop theme={theme} />
       <LeafBackground density="medium" topCorner />
-      <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
+      <SafeAreaView style={{ flex: 1, paddingBottom: tabBarHeight }} edges={['top', 'left', 'right']}>
         <ScrollView
           contentContainerClassName="px-5 pb-8"
           showsVerticalScrollIndicator={false}
@@ -77,13 +113,21 @@ export default function TodayScreen() {
                 className="text-[14px]">
                 {overallLeft < 0
                   ? t('today.overBy', { amount: money.format(-overallLeft) })
-                  : t('today.leftOf', { left: money.format(overallLeft), total: money.format(overall) })}
+                  : t('today.leftOf', {
+                      left: money.format(overallLeft),
+                      total: money.format(overall),
+                    })}
               </AppText>
             )}
-            {totalIncome > 0 && (
-              <AppText tone="muted" className="mt-1 text-[13px]">
-                {t('today.incomeThisPeriod', { amount: money.format(totalIncome) })}
-              </AppText>
+            {(totalIncome > 0 || totalSaved > 0) && (
+              <View className={`mt-1 gap-1.5 ${align.row}`}>
+                <AppText weight="medium" className="text-[15px]">
+                  {t('today.balanceThisPeriod')}
+                </AppText>
+                <AppText weight="medium" className="text-[15px]">
+                  {money.format(balance)}
+                </AppText>
+              </View>
             )}
           </View>
 
@@ -110,7 +154,7 @@ export default function TodayScreen() {
             </Pressable>
           </View>
 
-          <AppText weight="medium" className="mb-2 mt-6 text-[17px]">
+          <AppText weight="medium" className="mb-2 mt-6 text-[17px]" style={align.text}>
             {t('today.categoriesThisPeriod')}
           </AppText>
 
@@ -127,9 +171,84 @@ export default function TodayScreen() {
               ))}
             </View>
           )}
+
+          {depositCards.length > 0 && (
+            <>
+              <AppText weight="medium" className="mb-2 mt-6 text-[17px]" style={align.text}>
+                {t('today.depositsThisPeriod')}
+              </AppText>
+              <View className="gap-3">
+                {depositCards.map(({ goal, amount }) => (
+                  <SummaryCard
+                    key={goal.id}
+                    name={goal.name}
+                    icon={goal.icon}
+                    color={colors.primary}
+                    amount={amount}
+                    onPress={() => router.push('/goals')}
+                  />
+                ))}
+              </View>
+            </>
+          )}
+
+          {incomeCards.length > 0 && (
+            <>
+              <AppText weight="medium" className="mb-2 mt-6 text-[17px]" style={align.text}>
+                {t('today.incomeSection')}
+              </AppText>
+              <View className="gap-3">
+                {incomeCards.map((category) => (
+                  <SummaryCard
+                    key={category.id}
+                    name={nameOf(category)}
+                    icon={category.icon}
+                    color={category.color}
+                    amount={incomeBy.get(category.id) ?? 0}
+                    onPress={() => router.push({ pathname: '/category/[id]', params: { id: category.id } })}
+                  />
+                ))}
+              </View>
+            </>
+          )}
         </ScrollView>
       </SafeAreaView>
     </View>
+  );
+}
+
+/** A plain card: icon, name, one amount. Used for deposits and income. */
+function SummaryCard({
+  name,
+  icon,
+  color,
+  amount,
+  onPress,
+}: {
+  name: string;
+  icon: string;
+  color: string;
+  amount: number;
+  onPress: () => void;
+}) {
+  const money = useMoney();
+  const align = useRowAlign();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${name}, ${money.format(amount)}`}
+      onPress={onPress}
+      className={`items-center gap-3 rounded-xl border border-border bg-surface p-3 active:opacity-80 ${align.row}`}>
+      <CategoryIcon icon={icon} color={color} />
+      <View className="flex-1">
+        <AppText weight="medium" className="text-[17px]" numberOfLines={1} style={align.text}>
+          {name}
+        </AppText>
+        <AppText tone="muted" className="text-[14px]" style={align.text}>
+          {money.format(amount)}
+        </AppText>
+      </View>
+    </Pressable>
   );
 }
 
@@ -137,6 +256,7 @@ function CategoryCard({ category, spent }: { category: Category; spent: number }
   const { t } = useTranslation();
   const money = useMoney();
   const nameOf = useCategoryName();
+  const align = useRowAlign();
   const budget = category.monthly_budget;
   const left = budget === null ? null : budgetRemaining(budget, spent);
   const over = left !== null && left < 0;
@@ -157,21 +277,31 @@ function CategoryCard({ category, spent }: { category: Category; spent: number }
       className={`rounded-xl border p-3 active:opacity-80 ${
         over ? 'border-danger bg-danger-surface' : 'border-border bg-surface'
       }`}>
-      <View className="flex-row items-center gap-3">
+      <View className={`items-center gap-3 ${align.row}`}>
         <CategoryIcon icon={category.icon} color={category.color} />
         <View className="flex-1">
-          <AppText weight="medium" tone={over ? 'danger' : 'text'} className="text-[17px]" numberOfLines={1}>
+          <AppText
+            weight="medium"
+            tone={over ? 'danger' : 'text'}
+            className="text-[17px]"
+            numberOfLines={1}
+            style={align.text}>
             {name}
           </AppText>
-          <AppText tone={over ? 'danger' : 'muted'} className="text-[14px]">
+          <AppText tone={over ? 'danger' : 'muted'} className="text-[14px]" style={align.text}>
             {budget === null
               ? money.format(spent)
-              : t('today.spentOf', { spent: money.format(spent), budget: money.format(budget) })}
+              : t('today.spentOf', {
+                  spent: money.format(spent),
+                  budget: money.format(budget),
+                })}
           </AppText>
         </View>
         {left !== null && (
           <AppText tone={over ? 'danger' : 'primary'} weight={over ? 'bold' : 'regular'} className="text-[12px]">
-            {over ? t('today.overBy', { amount: money.format(-left) }) : t('today.left', { amount: money.format(left) })}
+            {over
+              ? t('today.overBy', { amount: money.format(-left) })
+              : t('today.left', { amount: money.format(left) })}
           </AppText>
         )}
       </View>

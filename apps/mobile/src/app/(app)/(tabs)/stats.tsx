@@ -1,4 +1,13 @@
-import { percentOf, type Period, periodFor, shiftPeriod, type TransactionType, yearOf, yearPeriod } from '@finny/shared';
+import {
+  percentOf,
+  type Period,
+  periodBalance,
+  periodFor,
+  shiftPeriod,
+  type TransactionType,
+  yearOf,
+  yearPeriod,
+} from '@finny/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
@@ -10,21 +19,24 @@ import { Screen } from '@/components/ui/Screen';
 import { Segmented } from '@/components/ui/Segmented';
 import { EmptyState, ErrorState, Loading } from '@/components/ui/States';
 import { useCategoryName, useCurrentPeriod, useDateFormat, useMoney } from '@/data/hooks';
-import { useCategories, useCategoryTotals } from '@/data/queries';
+import { useCategories, useCategoryTotals, useGoalDepositsInPeriod } from '@/data/queries';
 import { useLayoutRtl } from '@/i18n';
+import { useTheme } from '@/theme/ThemeProvider';
 
 type View_ = 'monthly' | 'yearly';
+type Tab = TransactionType | 'balance';
 
 export default function StatsScreen() {
   const { t } = useTranslation();
   const rtl = useLayoutRtl();
   const money = useMoney();
+  const { colors } = useTheme();
   const nameOf = useCategoryName();
   const { dayMonthShort, monthYear } = useDateFormat();
   const { startDay, today } = useCurrentPeriod();
 
   const [view, setView] = useState<View_>('monthly');
-  const [type, setType] = useState<TransactionType>('expense');
+  const [type, setType] = useState<Tab>('expense');
   const [offset, setOffset] = useState(0);
 
   const currentMonth = periodFor(today, startDay);
@@ -35,19 +47,53 @@ export default function StatsScreen() {
 
   const categories = useCategories();
   const totals = useCategoryTotals(period);
+  const deposits = useGoalDepositsInPeriod(period);
   const previousTotals = useCategoryTotals(previous);
 
   const byId = new Map((categories.data ?? []).map((c) => [c.id, c]));
+  const listType: TransactionType = type === 'balance' ? 'expense' : type;
   const rows = (totals.data ?? [])
-    .filter((x) => x.type === type)
+    .filter((x) => x.type === listType)
     .sort((a, b) => b.total - a.total)
     .map((x) => ({ ...x, category: byId.get(x.category_id) }));
   const total = rows.reduce((a, x) => a + x.total, 0);
-  const previousTotal = (previousTotals.data ?? []).filter((x) => x.type === type).reduce((a, x) => a + x.total, 0);
+  const previousTotal = (previousTotals.data ?? []).filter((x) => x.type === listType).reduce((a, x) => a + x.total, 0);
 
   // Whole-percent change against the previous period, from integers.
-  const change =
-    previousTotal > 0 ? Math.round(((total - previousTotal) * 100) / previousTotal) : null;
+  const change = previousTotal > 0 ? Math.round(((total - previousTotal) * 100) / previousTotal) : null;
+
+  // Balance tab: income split into expenses, saved and what is left.
+  const sumOf = (kind: TransactionType) =>
+    (totals.data ?? []).filter((x) => x.type === kind).reduce((a, x) => a + x.total, 0);
+  const incomeAll = sumOf('income');
+  const expenseAll = sumOf('expense');
+  const savedAll = [...(deposits.data?.values() ?? [])].reduce((a, b) => a + b, 0);
+  const balance = periodBalance(incomeAll, savedAll, expenseAll);
+  const balanceRows = [
+    {
+      key: 'expense',
+      label: t('stats.expenses'),
+      value: expenseAll,
+      color: colors.accent,
+    },
+    {
+      key: 'saved',
+      label: t('stats.saved'),
+      value: savedAll,
+      color: colors.primary,
+    },
+    ...(balance > 0
+      ? [
+          {
+            key: 'left',
+            label: t('stats.left'),
+            value: balance,
+            color: colors.secondary,
+          },
+        ]
+      : []),
+  ].filter((r) => r.value > 0);
+  const balanceBase = balanceRows.reduce((a, r) => a + r.value, 0);
 
   const label =
     view === 'yearly'
@@ -100,7 +146,7 @@ export default function StatsScreen() {
       </View>
 
       <View className="mb-3 mt-1 flex-row justify-center gap-2">
-        {(['expense', 'income'] as const).map((option) => {
+        {(['expense', 'income', 'balance'] as const).map((option) => {
           const selected = type === option;
           return (
             <Pressable
@@ -112,26 +158,86 @@ export default function StatsScreen() {
                 selected ? 'border-primary bg-leaf-light' : 'border-border bg-surface'
               }`}>
               <AppText weight={selected ? 'medium' : 'regular'} className="text-[14px]">
-                {t(option === 'expense' ? 'stats.expenses' : 'stats.income')}
+                {t(option === 'expense' ? 'stats.expenses' : option === 'income' ? 'stats.income' : 'stats.balance')}
               </AppText>
             </Pressable>
           );
         })}
       </View>
 
-      {totals.isLoading || categories.isLoading ? (
+      {totals.isLoading || categories.isLoading || deposits.isLoading ? (
         <Loading />
-      ) : totals.isError || categories.isError ? (
+      ) : totals.isError || categories.isError || deposits.isError ? (
         <ErrorState
           onRetry={() => {
             void totals.refetch();
             void categories.refetch();
+            void deposits.refetch();
           }}
         />
+      ) : type === 'balance' ? (
+        <>
+          <View className="items-center">
+            <Donut
+              slices={balanceRows.map((r) => ({
+                key: r.key,
+                value: r.value,
+                color: r.color,
+              }))}>
+              <AppText weight="bold" className="text-[24px]">
+                {money.format(balance)}
+              </AppText>
+              <AppText tone="muted" className="text-[13px]">
+                {t('stats.balance')}
+              </AppText>
+            </Donut>
+          </View>
+          {incomeAll === 0 && expenseAll === 0 && savedAll === 0 ? (
+            <EmptyState text={t('stats.empty')} />
+          ) : (
+            <View className="mt-4 rounded-xl border border-border bg-surface px-4 py-1">
+              <View className="min-h-[48px] flex-row items-center gap-3">
+                <View style={{ width: 12, height: 12 }} />
+                <AppText className="flex-1 text-[15px]">{t('stats.income')}</AppText>
+                <AppText weight="medium" className="text-[15px]">
+                  {money.format(incomeAll)}
+                </AppText>
+              </View>
+              {balanceRows.map((row) => (
+                <View
+                  key={row.key}
+                  accessible
+                  accessibilityLabel={`${row.label}, ${percentOf(row.value, balanceBase)}%, ${money.format(row.value)}`}
+                  className="min-h-[48px] flex-row items-center gap-3 border-t border-border">
+                  <View
+                    style={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: 6,
+                      backgroundColor: row.color,
+                    }}
+                  />
+                  <AppText className="flex-1 text-[15px]">{row.label}</AppText>
+                  <AppText tone="muted" className="text-[14px]">
+                    {percentOf(row.value, balanceBase).toFixed(1)}%
+                  </AppText>
+                  <AppText weight="medium" className="min-w-[76px] text-end text-[15px]">
+                    {money.format(row.value)}
+                  </AppText>
+                </View>
+              ))}
+            </View>
+          )}
+        </>
       ) : (
         <>
           <View className="items-center">
-            <Donut slices={rows.map((r) => ({ key: r.category_id, value: r.total, color: r.category?.color ?? '#8A9099' }))}>
+            <Donut
+              slices={rows.map((r) => ({
+                key: r.category_id,
+                value: r.total,
+                color: r.category?.color ?? '#8A9099',
+              }))}>
               <AppText weight="bold" className="text-[24px]">
                 {money.format(total)}
               </AppText>
@@ -154,7 +260,12 @@ export default function StatsScreen() {
                     accessibilityLabel={`${nameOf(row.category)}, ${share}%, ${money.format(row.total)}`}
                     className={`min-h-[48px] flex-row items-center gap-3 ${index > 0 ? 'border-t border-border' : ''}`}>
                     <View
-                      style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: row.category?.color ?? '#8A9099' }}
+                      style={{
+                        width: 12,
+                        height: 12,
+                        borderRadius: 6,
+                        backgroundColor: row.category?.color ?? '#8A9099',
+                      }}
                     />
                     <AppText className="flex-1 text-[15px]" numberOfLines={1}>
                       {nameOf(row.category)}

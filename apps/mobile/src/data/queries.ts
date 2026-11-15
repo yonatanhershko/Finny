@@ -2,6 +2,7 @@ import type {
   Category,
   CategoryTotal,
   Goal,
+  GoalDeposit,
   GoalTotal,
   Period,
   RepeatFrequency,
@@ -297,6 +298,27 @@ export function useGoals() {
       ]);
       const saved = new Map(unwrap<GoalTotal[]>(totals).map((t) => [t.goal_id, t.saved]));
       return unwrap<Goal[]>(goals).map((g) => ({ ...g, saved: saved.get(g.id) ?? 0 }));
+    },
+  });
+}
+
+/** Money deposited per goal inside one budget period. Never part of expense totals. */
+export function useGoalDepositsInPeriod(period: Period) {
+  return useQuery({
+    // Under the 'goals' key so a new deposit refreshes it.
+    queryKey: [...keys.goals, 'deposits', period.start, period.end] as const,
+    queryFn: async (): Promise<Map<string, number>> => {
+      const rows = unwrap<Pick<GoalDeposit, 'goal_id' | 'amount'>[]>(
+        await supabase
+          .from('goal_deposits')
+          .select('goal_id, amount')
+          .gte('date', period.start)
+          .lte('date', period.end)
+          .limit(2000),
+      );
+      const sums = new Map<string, number>();
+      for (const r of rows) sums.set(r.goal_id, (sums.get(r.goal_id) ?? 0) + r.amount);
+      return sums;
     },
   });
 }
