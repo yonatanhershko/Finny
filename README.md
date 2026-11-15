@@ -40,7 +40,7 @@ Access is a yearly subscription. Users pay by **Bit**, and an admin approves eac
 | **Admin dashboard** | Next.js on Vercel. Approves Bit payments, manages users and subscriptions through admin-only RPCs. |
 | **Supabase** | Auth (email, OTP, reset), PostgreSQL with Row Level Security on every table, RPCs for totals, `pg_cron` for daily expiry. |
 | **Shared packages** | `@finny/shared`: money math and budget periods. `@finny/tokens`: one design system for both apps. |
-| **Planned** | Offline cache + write queue, push notifications (daily reminder, subscription expiry) via Edge Function → Expo Push. |
+| **Offline + notifications** | Offline cache with a write queue that syncs when back online. Push notifications (daily reminder, subscription expiry) via Edge Function → Expo Push. |
 
 **Money is never a float.** Every amount is stored as an integer in minor units (agorot / cents) and formatted in one place.
 
