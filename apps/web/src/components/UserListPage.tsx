@@ -7,6 +7,7 @@ import { fetchProfiles, PAGE_SIZE } from "@/lib/admin-api";
 import { statusLabel } from "@/lib/format";
 import { useAsync } from "@/lib/use-async";
 
+import { NotifyDialog } from "./NotifyDialog";
 import { UserTable } from "./UserTable";
 import { Button, Card, DataState } from "./ui";
 
@@ -27,6 +28,7 @@ export function UserListPage({
   const [status, setStatus] = useState<AccountStatus | "all">(fixedStatus ?? "all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
+  const [notifyAll, setNotifyAll] = useState(false);
 
   const users = useAsync(
     () =>
@@ -43,10 +45,18 @@ export function UserListPage({
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold md:text-3xl">{title}</h1>
-        <p className="text-text-muted">{subtitle}</p>
+      <header className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold md:text-3xl">{title}</h1>
+          <p className="text-text-muted">{subtitle}</p>
+        </div>
+        {!fixedStatus && (
+          <Button variant="ghost" onClick={() => setNotifyAll(true)}>
+            Notify all active users
+          </Button>
+        )}
       </header>
+      {notifyAll && <NotifyDialog target="all" onClose={() => setNotifyAll(false)} />}
 
       <Card>
         <div className="mb-4 flex flex-wrap gap-3">

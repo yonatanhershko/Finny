@@ -99,6 +99,16 @@ Decided by the owner 2026-11-15. No effect on any amount, budget or stat.
 - Switches are saved per device (a new phone starts with all on). The renewal switch and the device language are also saved with the device's push token, so the server knows whether and in which language to send.
 - Language: notifications use the app language. Changing the language changes them too, with nothing for the user to do.
 - Signing out removes the device's push token and cancels its scheduled reminders.
+- Push delivery: Firebase (free Spark plan) is used only as the delivery pipe to Android; no data is kept there. iPhone goes through Apple when the developer account exists. (owner 2026-11-16)
+- **Manual send** from the admin dashboard (owner 2026-11-16), for sending by hand or testing:
+  - To one active user (a "Notify" button in that user's row) or to all active users (a "Notify all" button above the list).
+  - A dropdown lists every kind: renewal in a month / in a week / tomorrow / today, the three inactivity texts, and "Custom message". Purchase detection joins when it is built.
+  - Custom message: a one-time title (up to 60 characters) and text (up to 200), sent as written to every device, in whatever language the admin wrote. Not saved.
+  - Ready-made kinds arrive in each device's own language.
+  - Resets nothing: not written to the sent log, does not move the inactivity countdown, and the automatic reminder still arrives on its day.
+  - Sent even when the user switched that notification off; the dialog shows how many devices have renewal reminders off.
+  - The dialog shows who will get it (users, registered devices) before sending and "sent to N devices" after. A user with no registered device gets nothing, and the dialog says so.
+  - Admins only, enforced in the database. No audit log of manual sends.
 
 ## Admin web
 

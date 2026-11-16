@@ -3,7 +3,10 @@ import type {
   AccessPlan,
   AccountStatus,
   DashboardStats,
+  NotificationCatalogItem,
+  NotificationKind,
   Profile,
+  PushAudience,
 } from "@finny/shared";
 
 import { supabase } from "@/lib/supabase";
@@ -82,3 +85,37 @@ export const extendUser = (userId: string, months: AccessMonths) =>
 
 export const setUserPlan = (userId: string, plan: AccessPlan) =>
   run(supabase.rpc("admin_set_plan", { p_user_id: userId, p_plan: plan }));
+
+// ---- manual notifications ---------------------------------------------------
+
+export async function fetchNotificationCatalog(): Promise<NotificationCatalogItem[]> {
+  const { data, error } = await supabase.rpc("admin_notification_catalog");
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+/** Who a send would reach. `userId` null = all active users. */
+export async function fetchPushAudience(userId: string | null): Promise<PushAudience> {
+  const { data, error } = await supabase.rpc("admin_push_audience", { p_user_id: userId });
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export type NotificationChoice =
+  | { kind: NotificationKind }
+  | { kind: "custom"; title: string; body: string };
+
+/** Sends now. Returns how many devices it went to. `userId` null = all active users. */
+export async function sendNotification(
+  userId: string | null,
+  choice: NotificationChoice,
+): Promise<number> {
+  const { data, error } = await supabase.rpc("admin_send_notification", {
+    p_user_id: userId,
+    p_kind: choice.kind,
+    p_title: choice.kind === "custom" ? choice.title : null,
+    p_body: choice.kind === "custom" ? choice.body : null,
+  });
+  if (error) throw new Error(error.message);
+  return data;
+}

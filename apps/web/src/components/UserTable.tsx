@@ -11,6 +11,7 @@ import {
 } from "@/lib/admin-api";
 import { formatDate, monthsLabel, planLabel } from "@/lib/format";
 
+import { NotifyDialog } from "./NotifyDialog";
 import { Button, PlanBadge, StatusBadge } from "./ui";
 
 const plans: AccessPlan[] = ["paid", "vip", "family"];
@@ -95,6 +96,7 @@ function UserActions({
   const [months, setMonths] = useState<AccessMonths>(12);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notifying, setNotifying] = useState(false);
 
   const act = async (action: () => Promise<void>) => {
     setBusy(true);
@@ -141,6 +143,9 @@ function UserActions({
                 </Button>
               </>
             )}
+            <Button variant="ghost" onClick={() => setNotifying(true)}>
+              Notify
+            </Button>
           </>
         ) : (
           <>
@@ -189,6 +194,12 @@ function UserActions({
         >
           {error}
         </p>
+      )}
+       {notifying && (
+        <NotifyDialog
+          target={{ id: user.id, name: user.full_name || user.email }}
+          onClose={() => setNotifying(false)}
+        />
       )}
     </>
   );

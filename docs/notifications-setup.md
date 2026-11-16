@@ -38,7 +38,7 @@ Keep this split. Do not move renewal reminders to local to "save setup": it brin
 
    It prints a project ID. Put it in `apps/mobile/.env.development` (and `.env.production`) as `EAS_PROJECT_ID=...`, and add the same variable to the EAS environments (`eas env:create`). It is not a secret.
 2. Firebase console → create a project (free) → add an Android app for **each** package: `com.finny.app.dev` and `com.finny.app`.
-3. Download `google-services.json`, save it as `apps/mobile/google-services.json`, and tell Claude: it adds `android.googleServicesFile` to `app.config.ts`.
+3. Download `google-services.json` (after adding both apps, so it holds both), save it as `apps/mobile/google-services.json`, and add `GOOGLE_SERVICES_JSON=./google-services.json` to `apps/mobile/.env.development` and `.env.production`. `app.config.ts` already reads it. The file holds no secret.
 4. Firebase → Project settings → Service accounts → "Generate new private key". Upload that JSON to EAS:
 
    ```bash
@@ -67,9 +67,13 @@ Needs the paid Apple Developer Program (99 USD / year). Until then: local remind
 5. Test the same way as Android step 6.
 6. No code change is needed. The app already registers the iPhone token.
 
+## Sending by hand (admin dashboard)
+
+Users page → "Notify" in an active user's row, or "Notify all active users" at the top. Pick a ready-made notification or write a one-time custom message. It reaches only phones that registered a push token, so it needs the push setup above. It resets nothing.
+
 ## Before prod
 
-- Apply `supabase/migrations/20261115140000_notifications.sql` to the prod project with the other migrations.
+- Apply `supabase/migrations/20261115140000_notifications.sql` and `20261116090000_admin_send_notification.sql` to the prod project with the other migrations.
 - Decide if 08:00 UTC is the right hour (10:00 Israel in winter, 11:00 in summer).
 - Optional hardening: turn on "Enhanced Security for Push Notifications" in the Expo dashboard. Then the database job needs an Expo access token; tell Claude before turning it on, or the job stops sending.
 - Known limit: tokens of uninstalled apps are not cleaned up yet. Harmless, the push service drops them.

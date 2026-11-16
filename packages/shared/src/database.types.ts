@@ -33,6 +33,25 @@ export type SubscriptionEvent = {
   created_at: string;
 };
 
+/** A ready-made notification, as the admin dropdown shows it. */
+export type NotificationKind =
+  | 'expiry_30'
+  | 'expiry_7'
+  | 'expiry_1'
+  | 'expiry_0'
+  | 'inactive_1'
+  | 'inactive_2'
+  | 'inactive_3';
+export type NotificationText = { title: string; body: string };
+export type NotificationCatalogItem = { kind: NotificationKind; he: NotificationText; en: NotificationText };
+/** Who a manual send would reach. */
+export type PushAudience = {
+  users: number;
+  users_with_device: number;
+  devices: number;
+  renewal_off_devices: number;
+};
+
 export type DashboardStats = {
   total_users: number;
   active_subscribers: number;
@@ -165,6 +184,12 @@ export type Database = {
       admin_extend_user: { Args: { p_user_id: string; p_months?: AccessMonths }; Returns: Profile };
       admin_set_plan: { Args: { p_user_id: string; p_plan: AccessPlan }; Returns: Profile };
       admin_dashboard_stats: { Args: Record<never, never>; Returns: DashboardStats };
+      admin_notification_catalog: { Args: Record<never, never>; Returns: NotificationCatalogItem[] };
+      admin_push_audience: { Args: { p_user_id?: string | null }; Returns: PushAudience };
+      admin_send_notification: {
+        Args: { p_user_id: string | null; p_kind: string; p_title?: string | null; p_body?: string | null };
+        Returns: number;
+      };
       request_approval: { Args: Record<never, never>; Returns: Profile };
       has_access: { Args: Record<never, never>; Returns: boolean };
       is_admin: { Args: Record<never, never>; Returns: boolean };
