@@ -16,8 +16,10 @@ import { Loading } from '@/components/ui/States';
 import { TextField } from '@/components/ui/TextField';
 import { useDateFormat, useMoney, useWalletName } from '@/data/hooks';
 import { useWallet } from '@/data/walletContext';
+import { useAuth } from '@/auth/AuthProvider';
 import { useRowAlign } from '@/i18n';
 import { useKeyboardVisible } from '@/lib/keyboard';
+import { noteTransactionSaved } from '@/lib/review';
 import {
   type Repeat,
   useAddTransaction,
@@ -54,6 +56,7 @@ export default function AddTransactionSheet() {
   const { short } = useDateFormat();
   const align = useRowAlign();
   const { wallet } = useWallet();
+  const userId = useAuth().session?.user.id;
   const walletName = useWalletName()(wallet);
 
   const [amount, setAmount] = useState('');
@@ -112,6 +115,7 @@ export default function AddTransactionSheet() {
               ? { kind: 'installments', count: installments }
               : { kind: 'recurring', frequency: repeat };
         await add.mutateAsync({ type, amount: minor, description, date, category_id: categoryId, repeat: repeatInput });
+        if (userId) void noteTransactionSaved(userId);
       }
       closeSheet();
     } catch {

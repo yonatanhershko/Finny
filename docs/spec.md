@@ -99,11 +99,24 @@ Decided by the owner 2026-11-17. Layout and details chosen by Claude from the ap
 - Export is a CSV file (opens in Excel and Google Sheets, Hebrew included).
 - Stats: monthly / yearly, expense / income, previous / next period, donut with total in the center, legend with percent and sum, change versus the previous period.
 - Goals: cards with target, saved, progress bar, deposit button.
-- More: account, language, theme, currency, wallets, budget month start and overall budget (of the current wallet), notifications, history + Excel export, delete account, sign out.
+- More: account, language, theme, currency, wallets, budget month start and overall budget (of the current wallet), notifications, history + Excel export, delete account, sign out, About (last row).
 - Login and every register step: wallet illustration with moving 3D leaves. Many leaves across the app.
 - Reminders: see "Notifications". The daily "log your spending" reminder is dropped (owner 2026-11-15).
 - Delete account: hard delete of all data and the auth user, after confirmation.
 - Online only in v1.
+
+## About and app review
+
+Decided by the owner 2026-11-17. No effect on any amount, budget or stat.
+
+- **About:** the last row in More opens an About screen: the logo wallet, "Finny", two short lines on what the app is, Terms of use (read only, same text as at sign-up; the privacy policy is its section 9), Rate us, Contact, and the app version with build number at the bottom.
+- **Contact:** a line with the owner's email (yonher8@gmail.com); tapping it opens a new mail. No WhatsApp for now.
+- **Rate us (About):** opens the store's write-a-review page (App Store / Google Play). Shown only once the store link is set in the app config; until the app is in the stores the row is hidden.
+- **Automatic review prompt:** the native in-app review dialog of iOS / Android, never our own "do you like Finny?" question first.
+  - When: right after a transaction is saved (back on home), or right after a goal deposit that reaches the goal's target.
+  - Only if: at least 7 days since this user first opened the app on this phone, and at least 10 transactions saved on this phone.
+  - At most once every 120 days (our own limit; Apple and Google add their own limits and may still show nothing).
+  - Never on first launch, mid-task or after an error. Counters are kept on the phone per user.
 
 ## Notifications
 

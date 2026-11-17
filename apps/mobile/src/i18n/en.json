@@ -262,7 +262,7 @@
   },
   "terms": {
     "title": "Terms of use",
-    "updated": "Last updated: November 15, 2026",
+    "updated": "Last updated: November 17, 2026",
     "iRead": "I agree to the terms of use",
     "readFirst": "Open the terms of use and accept them to continue",
     "openLink": "Read the terms of use",
@@ -274,7 +274,7 @@
       },
       {
         "title": "2. What Finny does",
-        "body": "• Finny helps you log income and expenses, set budgets, save toward goals and see statistics.\n• Finny is a tool for logging and tracking only. It is not financial, investment, tax or legal advice. Your money decisions are your own responsibility. Before a major decision, ask a licensed advisor.\n• Every number in the app is calculated from the data you enter. If the data is wrong, the results will be wrong too.\n• Finny does not connect to your bank account and does not make payments for you."
+        "body": "• Finny helps you log income and expenses, set budgets, save toward goals and see statistics.\n• You can keep up to 4 separate wallets (for example personal and business). Each wallet has its own categories, transactions, budgets and goals.\n• Finny is a tool for logging and tracking only. It is not financial, investment, tax or legal advice. Your money decisions are your own responsibility. Before a major decision, ask a licensed advisor.\n• Every number in the app is calculated from the data you enter. If the data is wrong, the results will be wrong too.\n• Finny does not connect to your bank account and does not make payments for you."
       },
       {
         "title": "3. Sign-up and account",
@@ -290,7 +290,7 @@
       },
       {
         "title": "6. Your data",
-        "body": "• The data you enter belongs to you.\n• Export: while your subscription is active, you can export all your transactions to an Excel file (CSV) from More → History and export. If your access is blocked, email us and we will send you the file.\n• Deletion: you can delete your account at any time from More → Delete account. Deletion is final and cannot be undone. It covers all transactions, categories, budgets, goals and the account itself.\n• We back up the system regularly, but we cannot promise that data will never be lost. Export a backup from time to time."
+        "body": "• The data you enter belongs to you.\n• Export: while your subscription is active, you can export the open wallet's transactions to an Excel file (CSV) from More → History and export, and any wallet's transactions from More → Wallets. If your access is blocked, email us and we will send you the file.\n• Deletion: you can delete your account at any time from More → Delete account. Deletion is final and cannot be undone. It covers all wallets, transactions, categories, budgets, goals and the account itself.\n• You can also delete a single wallet from More → Wallets. That deletion is final too: it removes all the data in that wallet, and your other wallets stay as they are.\n• We back up the system regularly, but we cannot promise that data will never be lost. Export a backup from time to time."
       },
       {
         "title": "7. Prohibited use",
@@ -302,7 +302,7 @@
       },
       {
         "title": "9. Privacy",
-        "body": "What we keep:\n• Your name and email.\n• The transactions, categories, budgets and goals you enter.\n• Your settings: language, theme, currency and reminders.\n• Your subscription status and when you accepted the terms.\n• A push-notification token, if you allowed notifications.\nWhy: only to run the app, manage your subscription and send reminders.\nWhat we do not do: we do not sell data, show ads or share data with marketers.\nWho processes data for us:\n• Supabase hosts the database on cloud servers outside Israel.\n• Expo, Apple and Google deliver notifications.\nSecurity: each user sees only their own data. The connection is encrypted.\nYour rights: you can view, correct, export and delete your data. For any such request, email yonher8@gmail.com."
+        "body": "What we keep:\n• Your name and email.\n• The wallets, transactions, categories, budgets and goals you enter.\n• Your settings: language, theme, currency and reminders.\n• Your subscription status and when you accepted the terms.\n• A push-notification token, if you allowed notifications.\nWhy: only to run the app, manage your subscription and send reminders.\nWhat we do not do: we do not sell data, show ads or share data with marketers.\nWho processes data for us:\n• Supabase hosts the database on cloud servers outside Israel.\n• Expo, Apple and Google deliver notifications.\nSecurity: each user sees only their own data. The connection is encrypted.\nYour rights: you can view, correct, export and delete your data. For any such request, email yonher8@gmail.com."
       },
       {
         "title": "10. Availability and changes to the service",
@@ -329,9 +329,6 @@
         "body": "For any question, request or complaint: yonher8@gmail.com"
       }
     ]
-  },
-  "splash": {
-    "loading": "Loading your money…"
   },
   "notifications": {
     "title": "Notifications",
@@ -422,5 +419,16 @@
     "exportFirst": "Export first",
     "inWallet": "In wallet: {{name}}",
     "settingsOf": "Settings of wallet \"{{name}}\""
+  },
+  "about": {
+    "title": "About",
+    "appName": "Finny",
+    "blurb": "Finny helps you log income and expenses, stay on budget and save for goals. Simple, calm, no ads.",
+    "terms": "Terms of use and privacy",
+    "rate": "Rate us",
+    "opensStore": "Opens the store",
+    "contact": "Contact us",
+    "opensMail": "Opens a new email",
+    "version": "Version {{version}}"
   }
 }

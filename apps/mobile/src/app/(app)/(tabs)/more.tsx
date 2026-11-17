@@ -165,6 +165,8 @@ export default function MoreScreen() {
         row('trash-can-outline', t('more.deleteAccount'), null, () => show('delete'), true),
       ])}
 
+      {group([row('information-outline', t('about.title'), null, () => router.push('/about'))])}
+
       <PressScale
         accessibilityRole="button"
         onPress={() => void signOut()}

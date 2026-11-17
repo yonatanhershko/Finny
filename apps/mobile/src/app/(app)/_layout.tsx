@@ -2,8 +2,10 @@ import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/reac
 import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 
+import { useAuth } from '@/auth/AuthProvider';
 import { materializeRecurring } from '@/data/queries';
 import { WalletProvider } from '@/data/WalletProvider';
+import { markFirstOpen } from '@/lib/review';
 import { NotificationSetup } from '@/notifications/NotificationSetup';
 import { useTheme } from '@/theme/ThemeProvider';
 
@@ -27,6 +29,12 @@ export default function AppLayout() {
 function AppStack() {
   const { colors } = useTheme();
   const client = useQueryClient();
+  const userId = useAuth().session?.user.id;
+
+  // Starts the 7-day clock of the review prompt (docs/spec.md "About and app review").
+  useEffect(() => {
+    if (userId) void markFirstOpen(userId);
+  }, [userId]);
 
   // Recurring transactions that came due since the last visit become real rows.
   useEffect(() => {

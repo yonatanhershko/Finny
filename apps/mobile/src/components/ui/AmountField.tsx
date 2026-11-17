@@ -33,9 +33,8 @@ export function AmountField({
   const { currency } = useMoney();
   const input = useRef<ComponentRef<typeof TextInput>>(null);
   const large = size === 'large';
-  // Numbers always start at the left, in both languages.
-  // Size the input to the digits so the sign sits right next to the number.
-  const inputWidth = Math.max(1, value.length) * (large ? 21 : 12) + 8;
+  const fontSize = large ? (value.length <= 6 ? 34 : value.length <= 8 ? 29 : 25) : 18;
+  const signSize = large ? Math.round(fontSize * 0.88) : 18;
   return (
     // The whole box is the tap target: a tap anywhere in it focuses the input.
     <Pressable
@@ -46,7 +45,7 @@ export function AmountField({
       className={`flex-row items-center justify-start gap-2 rounded-lg border border-border bg-surface px-4 ${
         large ? 'min-h-[68px]' : 'min-h-[52px]'
       }`}>
-      <AppText weight="bold" className={large ? 'text-[30px]' : 'text-[18px]'}>
+      <AppText weight="bold" style={{ fontSize: signSize, lineHeight: Math.round(signSize * 1.25) }}>
         {currencySymbol[currency]}
       </AppText>
       <TextInput
@@ -59,8 +58,9 @@ export function AmountField({
         autoFocus={autoFocus}
         placeholder="0"
         placeholderTextColor={colors.textMuted}
-        className={`font-rubik-bold text-text outline-none ${large ? 'text-[34px]' : 'text-[18px]'}`}
-        style={{ width: inputWidth, textAlign: 'left', writingDirection: 'ltr' }}
+        // Numbers always start at the left, right after the sign, in both languages.
+        className="min-w-0 flex-1 font-rubik-bold text-text outline-none"
+        style={{ fontSize, paddingVertical: 0, textAlign: 'left', writingDirection: 'ltr' }}
       />
     </Pressable>
   );
