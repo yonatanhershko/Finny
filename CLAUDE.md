@@ -16,7 +16,6 @@ Access is a yearly subscription paid by Bit and approved by hand by an admin.
 | `supabase/` | Migrations, edge functions, seed |
 | `docs/spec.md` | Approved product decisions. Business rules live here |
 | `evals/prod-readiness.md` | Checklist to pass before dev → prod |
-| `refreal imgs and svgs/` | Design references from the owner. Read-only |
 
 ## Claude setup
 

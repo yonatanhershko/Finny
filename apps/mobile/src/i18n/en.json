@@ -1,7 +1,6 @@
 {
   "app": {
-    "name": "Finny",
-    "tagline": "Manage your money with ease"
+    "name": "Finny"
   },
   "common": {
     "loading": "Loading…",
@@ -62,7 +61,11 @@
       "resend": "Send a new code",
       "link": "Forgot password?",
       "backToSignIn": "Back to sign in"
-    }
+    },
+    "or": "or",
+    "google": "Continue with Google",
+    "googleFailed": "Google sign-in did not work. Try again.",
+    "declineTerms": "I do not agree, sign out"
   },
   "settings": {
     "language": "Language",
@@ -357,7 +360,6 @@
       "allow": "Turn on notifications"
     },
     "unsupported": "This device has no notifications.",
-    "pushNote": "Renewal reminders come from the server, so they are always up to date.",
     "ask": {
       "title": "Get reminders from Finny?",
       "body": "We remind you before your subscription ends, and nudge you if you forget to track. No spam, and each one can be switched off.",
@@ -388,5 +390,37 @@
     "how": "To renew, contact your advisor on WhatsApp. After the Bit payment your subscription is extended.",
     "contact": "Contact your advisor on WhatsApp",
     "whatsappMessage": "Hi, I want to renew my Finny subscription. Name: {{name}}, email: {{email}}"
+  },
+  "wallets": {
+    "title": "Wallets",
+    "new": "New wallet",
+    "edit": "Edit wallet",
+    "name": "Wallet name",
+    "nameRequired": "Enter a name for the wallet.",
+    "newNote": "A new wallet starts empty, with the default categories.",
+    "defaults": {
+      "personal": "Personal"
+    },
+    "chipLabel": "Wallet: {{name}}",
+    "chipHint": "Switch, add or edit wallets",
+    "editNamed": "Edit {{name}}",
+    "manage": "Manage wallets",
+    "current": "Open now",
+    "limitNote": "You can have up to {{max}} wallets.",
+    "limitReached": "You already have 4 wallets, the most allowed.",
+    "rowHint": "Open, edit, export or delete",
+    "open": "Open this wallet",
+    "export": "Export to Excel (CSV)",
+    "delete": "Delete wallet",
+    "moveUp": "Move {{name}} up",
+    "moveDown": "Move {{name}} down",
+    "lastNote": "This is your only wallet, so it can't be deleted.",
+    "deleteTitle": "Delete {{name}}?",
+    "deleteBody": "Every transaction, category, budget and goal in this wallet is deleted for good. Your other wallets stay as they are. You can export it first.",
+    "deleteTypeName": "Type \"{{name}}\" to confirm",
+    "deleteConfirm": "Delete for good",
+    "exportFirst": "Export first",
+    "inWallet": "In wallet: {{name}}",
+    "settingsOf": "Settings of wallet \"{{name}}\""
   }
 }

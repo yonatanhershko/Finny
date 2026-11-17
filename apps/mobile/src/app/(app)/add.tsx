@@ -8,12 +8,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CategoryGrid } from '@/components/CategoryGrid';
 import { AmountField } from '@/components/ui/AmountField';
 import { AppText } from '@/components/ui/AppText';
+import { Shake } from '@/components/ui/Shake';
 import { Button } from '@/components/ui/Button';
 import { DatePicker } from '@/components/ui/DatePicker';
 import { Icon } from '@/components/ui/Icon';
 import { Loading } from '@/components/ui/States';
 import { TextField } from '@/components/ui/TextField';
-import { useDateFormat, useMoney } from '@/data/hooks';
+import { useDateFormat, useMoney, useWalletName } from '@/data/hooks';
+import { useWallet } from '@/data/walletContext';
+import { useRowAlign } from '@/i18n';
 import { useKeyboardVisible } from '@/lib/keyboard';
 import {
   type Repeat,
@@ -22,6 +25,7 @@ import {
   useTransaction,
   useUpdateTransaction,
 } from '@/data/queries';
+import { PressScale } from '@/components/ui/PressScale';
 
 type RepeatChoice = 'none' | RepeatFrequency | 'installments';
 const repeatChoices: RepeatChoice[] = ['none', 'weekly', 'monthly', 'yearly', 'installments'];
@@ -48,6 +52,9 @@ export default function AddTransactionSheet() {
   const update = useUpdateTransaction();
   const money = useMoney();
   const { short } = useDateFormat();
+  const align = useRowAlign();
+  const { wallet } = useWallet();
+  const walletName = useWalletName()(wallet);
 
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
@@ -57,6 +64,12 @@ export default function AddTransactionSheet() {
   const [count, setCount] = useState('3');
   const [pickingDate, setPickingDate] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Counts failed saves, so the message shakes again even when the text is the same.
+  const [failures, setFailures] = useState(0);
+  const fail = (message: string) => {
+    setError(message);
+    setFailures((n) => n + 1);
+  };
   const [loadedId, setLoadedId] = useState<string | null>(null);
 
   // Fill the form once when the transaction being edited arrives.
@@ -82,10 +95,10 @@ export default function AddTransactionSheet() {
       : null;
 
   const save = async () => {
-    if (minor === null) return setError(t('add.errors.amount'));
-    if (!categoryId) return setError(t('add.errors.category'));
+    if (minor === null) return fail(t('add.errors.amount'));
+    if (!categoryId) return fail(t('add.errors.category'));
     if (repeat === 'installments' && (!installmentsValid || minor < installments)) {
-      return setError(t('add.errors.installments'));
+      return fail(t('add.errors.installments'));
     }
     setError(null);
     try {
@@ -102,7 +115,7 @@ export default function AddTransactionSheet() {
       }
       closeSheet();
     } catch {
-      setError(t('common.errorGeneric'));
+      fail(t('common.errorGeneric'));
     }
   };
 
@@ -130,13 +143,23 @@ export default function AddTransactionSheet() {
             <AppText weight="bold" className="text-[19px]" accessibilityRole="header">
               {t(isEdit ? `add.editTitle.${type}` : `add.title.${type}`)}
             </AppText>
-            <Pressable
+            <PressScale
               accessibilityRole="button"
               accessibilityLabel={t('common.close')}
               className="h-11 w-11 items-center justify-center"
               onPress={closeSheet}>
               <Icon name="close" size={24} />
-            </Pressable>
+            </PressScale>
+          </View>
+          {/* Which wallet this goes into, so nothing lands in the wrong book. */}
+          <View
+            accessible
+            accessibilityLabel={t('wallets.inWallet', { name: walletName })}
+            className={`-mt-1 mb-1 items-center justify-center gap-1.5 px-5 ${align.row}`}>
+            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: wallet.color }} />
+            <AppText tone="muted" className="shrink text-[13px]" numberOfLines={1}>
+              {t('wallets.inWallet', { name: walletName })}
+            </AppText>
           </View>
 
           {isEdit && editing.isLoading ? (
@@ -176,14 +199,14 @@ export default function AddTransactionSheet() {
                 <AppText tone="muted" className="mb-1 text-[13px]">
                   {t('add.date')}
                 </AppText>
-                <Pressable
+                <PressScale
                   accessibilityRole="button"
                   accessibilityLabel={`${t('add.date')}: ${short(date)}`}
                   onPress={() => setPickingDate(true)}
                   className="min-h-[52px] flex-row items-center gap-3 rounded-lg border border-border bg-surface px-4">
                   <Icon name="calendar" tone="primary" />
                   <AppText className="text-[16px]">{short(date)}</AppText>
-                </Pressable>
+                </PressScale>
               </View>
 
               {!isEdit && (
@@ -195,7 +218,7 @@ export default function AddTransactionSheet() {
                     {repeatChoices.map((choice) => {
                       const selected = repeat === choice;
                       return (
-                        <Pressable
+                        <PressScale
                           key={choice}
                           accessibilityRole="button"
                           accessibilityState={{ selected }}
@@ -206,7 +229,7 @@ export default function AddTransactionSheet() {
                           <AppText tone={selected ? 'onPrimary' : 'text'} className="text-[14px]">
                             {t(`add.repeatOptions.${choice}`)}
                           </AppText>
-                        </Pressable>
+                        </PressScale>
                       );
                     })}
                   </ScrollView>
@@ -244,9 +267,11 @@ export default function AddTransactionSheet() {
               )}
 
               {error && (
-                <AppText tone="danger" className="text-[14px]" accessibilityLiveRegion="polite">
-                  {error}
-                </AppText>
+                <Shake trigger={failures}>
+                  <AppText tone="danger" className="text-[14px]" accessibilityLiveRegion="polite">
+                    {error}
+                  </AppText>
+                </Shake>
               )}
               <Button label={t('common.save')} onPress={save} loading={busy} />
             </ScrollView>

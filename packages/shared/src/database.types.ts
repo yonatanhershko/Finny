@@ -66,8 +66,9 @@ export type RepeatFrequency = 'weekly' | 'monthly' | 'yearly';
 export type UserSettings = {
   user_id: string;
   currency: 'ILS' | 'USD';
+  /** Unused since wallets: read Wallet.month_start_day. */
   month_start_day: number;
-  /** minor units; null = no overall budget */
+  /** Unused since wallets: read Wallet.overall_budget. */
   overall_budget: number | null;
   daily_reminder_enabled: boolean;
   daily_reminder_time: string;
@@ -75,9 +76,28 @@ export type UserSettings = {
   updated_at: string;
 };
 
+/** A separate book of money. Up to 4 per user (docs/spec.md "Wallets"). */
+export type Wallet = {
+  id: string;
+  user_id: string;
+  /** null for the untouched first wallet: show the translated default_key */
+  name: string | null;
+  default_key: 'personal' | null;
+  color: string;
+  icon: string;
+  sort_order: number;
+  month_start_day: number;
+  /** minor units; null = no overall budget */
+  overall_budget: number | null;
+  created_at: string;
+};
+
+export const WALLET_LIMIT = 4;
+
 export type Category = {
   id: string;
   user_id: string;
+  wallet_id: string;
   type: TransactionType;
   /** null for an untouched default category: show the translated default_key */
   name: string | null;
@@ -94,6 +114,7 @@ export type Category = {
 export type Transaction = {
   id: string;
   user_id: string;
+  wallet_id: string;
   type: TransactionType;
   /** minor units, always positive */
   amount: number;
@@ -108,6 +129,7 @@ export type Transaction = {
 export type RecurringRule = {
   id: string;
   user_id: string;
+  wallet_id: string;
   kind: RepeatKind;
   type: TransactionType;
   category_id: string;
@@ -125,6 +147,7 @@ export type RecurringRule = {
 export type Goal = {
   id: string;
   user_id: string;
+  wallet_id: string;
   name: string;
   target_amount: number;
   icon: string;
@@ -136,6 +159,7 @@ export type Goal = {
 export type GoalDeposit = {
   id: string;
   user_id: string;
+  wallet_id: string;
   goal_id: string;
   amount: number;
   date: string;
@@ -168,6 +192,7 @@ export type Database = {
         Relationships: [];
       };
       user_settings: Table<UserSettings, 'user_id'>;
+      wallets: Table<Wallet, 'user_id'>;
       categories: Table<Category, 'type'>;
       transactions: Table<Transaction, 'type' | 'amount' | 'category_id'>;
       recurring_rules: Table<RecurringRule, 'kind' | 'type' | 'category_id' | 'amount' | 'start_date'>;
@@ -217,7 +242,9 @@ export type Database = {
         };
         Returns: string;
       };
-      category_totals: { Args: { p_from: string; p_to: string }; Returns: CategoryTotal[] };
+      category_totals: { Args: { p_wallet_id: string; p_from: string; p_to: string }; Returns: CategoryTotal[] };
+      create_wallet: { Args: { p_name: string; p_color: string; p_icon: string }; Returns: Wallet };
+      delete_wallet: { Args: { p_wallet_id: string }; Returns: undefined };
       goal_totals: { Args: Record<never, never>; Returns: GoalTotal[] };
       delete_account: { Args: Record<never, never>; Returns: undefined };
       register_push_token: {

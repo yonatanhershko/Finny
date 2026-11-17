@@ -2,7 +2,7 @@ import { amountToInput, type Category, parseAmount, type TransactionType } from 
 import { categoryPalette } from '@finny/tokens';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 
 import { CategoryForm } from '@/components/CategoryGrid';
 import { ScreenHeader } from '@/components/ScreenHeader';
@@ -17,6 +17,7 @@ import { ErrorState, Loading } from '@/components/ui/States';
 import { useCategoryName, useMoney } from '@/data/hooks';
 import { useCategories, useRemoveCategory, useSaveCategory } from '@/data/queries';
 import { useRowAlign } from '@/i18n';
+import { PressScale } from '@/components/ui/PressScale';
 
 type Draft = { id?: string; name: string; icon: string; color: string; budget: string };
 
@@ -106,7 +107,7 @@ export default function CategoriesScreen() {
         ) : (
           list.map((category, index) => (
             <View key={category.id} className={`items-center rounded-lg border border-border bg-surface ${align.row} ${align.he ? 'pr-3' : 'pl-3'}`}>
-              <Pressable
+              <PressScale
                 accessibilityRole="button"
                 accessibilityLabel={`${nameOf(category)}. ${t('common.edit')}`}
                 onPress={() => openEdit(category)}
@@ -122,30 +123,30 @@ export default function CategoriesScreen() {
                     </AppText>
                   )}
                 </View>
-              </Pressable>
-              <Pressable
+              </PressScale>
+              <PressScale
                 accessibilityRole="button"
                 accessibilityLabel={t('categories.moveUp', { name: nameOf(category) })}
                 disabled={index === 0}
                 onPress={() => void move(index, -1)}
                 className={`h-11 w-10 items-center justify-center ${index === 0 ? 'opacity-25' : ''}`}>
                 <Icon name="arrow-up" size={18} tone="muted" />
-              </Pressable>
-              <Pressable
+              </PressScale>
+              <PressScale
                 accessibilityRole="button"
                 accessibilityLabel={t('categories.moveDown', { name: nameOf(category) })}
                 disabled={index === list.length - 1}
                 onPress={() => void move(index, 1)}
                 className={`h-11 w-10 items-center justify-center ${index === list.length - 1 ? 'opacity-25' : ''}`}>
                 <Icon name="arrow-down" size={18} tone="muted" />
-              </Pressable>
-              <Pressable
+              </PressScale>
+              <PressScale
                 accessibilityRole="button"
                 accessibilityLabel={`${t('common.delete')}: ${nameOf(category)}`}
                 onPress={() => setRemoving(category)}
                 className="h-11 w-11 items-center justify-center">
                 <Icon name="trash-can-outline" size={20} tone="muted" />
-              </Pressable>
+              </PressScale>
             </View>
           ))
         )}

@@ -2,7 +2,7 @@ import { amountToInput, type Currency, currencySymbol, parseAmount } from '@finn
 import { router } from 'expo-router';
 import { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 
 import { useAuth } from '@/auth/AuthProvider';
 import { AmountField } from '@/components/ui/AmountField';
@@ -11,12 +11,14 @@ import { Dialog } from '@/components/ui/Dialog';
 import { Icon } from '@/components/ui/Icon';
 import { Screen } from '@/components/ui/Screen';
 import { TextField } from '@/components/ui/TextField';
-import { useMoney } from '@/data/hooks';
-import { useSettings, useUpdateSettings } from '@/data/queries';
+import { useMoney, useWalletName } from '@/data/hooks';
+import { useUpdateSettings, useUpdateWallet } from '@/data/queries';
+import { useWallet } from '@/data/walletContext';
 import { changeLanguage, useLanguage, useRowAlign } from '@/i18n';
 import type { Language, ThemePreference } from '@/lib/preferences';
 import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/theme/ThemeProvider';
+import { PressScale } from '@/components/ui/PressScale';
 
 type Open = null | 'name' | 'language' | 'theme' | 'currency' | 'startDay' | 'budget' | 'delete';
 
@@ -26,8 +28,12 @@ export default function MoreScreen() {
   const align = useRowAlign();
   const { preference, setPreference } = useTheme();
   const { profile, signOut, refreshProfile } = useAuth();
-  const settings = useSettings();
   const update = useUpdateSettings();
+  const { wallet } = useWallet();
+  const walletName = useWalletName()(wallet);
+  const updateWallet = useUpdateWallet();
+  const saveWallet = (patch: { month_start_day?: number; overall_budget?: number | null }) =>
+    updateWallet.mutateAsync({ id: wallet.id, ...patch });
   const money = useMoney();
 
   const [open, setOpen] = useState<Open>(null);
@@ -60,12 +66,13 @@ export default function MoreScreen() {
     light: t('settings.themeLight'),
     dark: t('settings.themeDark'),
   };
-  const startDay = settings.data?.month_start_day ?? 1;
-  const overall = settings.data?.overall_budget ?? null;
+  // Budget month and overall budget belong to the current wallet.
+  const startDay = wallet.month_start_day;
+  const overall = wallet.overall_budget;
   const chevron = align.he ? 'chevron-left' : 'chevron-right';
 
   const row = (icon: string, label: string, value: string | null, onPress: () => void, danger = false) => (
-    <Pressable
+    <PressScale
       accessibilityRole="button"
       accessibilityLabel={value ? `${label}: ${value}` : label}
       onPress={onPress}
@@ -80,7 +87,7 @@ export default function MoreScreen() {
         </AppText>
       )}
       <Icon name={chevron} tone="muted" size={20} />
-    </Pressable>
+    </PressScale>
   );
 
   const group = (children: ReactNode[]) => (
@@ -98,7 +105,7 @@ export default function MoreScreen() {
       {options.map((option) => {
         const selected = option.value === current;
         return (
-          <Pressable
+          <PressScale
             key={option.value}
             accessibilityRole="radio"
             accessibilityState={{ selected }}
@@ -108,7 +115,7 @@ export default function MoreScreen() {
             }`}>
             <AppText className="text-[16px]">{option.label}</AppText>
             {selected && <Icon name="check" tone="primary" />}
-          </Pressable>
+          </PressScale>
         );
       })}
     </View>
@@ -135,9 +142,16 @@ export default function MoreScreen() {
           currencySymbol[money.currency],
           () => show('currency'),
         ),
+        row('wallet-outline', t('wallets.title'), walletName, () => router.push('/wallets')),
+      ])}
+
+      <AppText tone="muted" className="-mb-2 px-1 text-[13px]">
+        {t('wallets.settingsOf', { name: walletName })}
+      </AppText>
+      {group([
         row('calendar-start', t('more.monthStart'), String(startDay), () => show('startDay', String(startDay))),
         row(
-          'wallet-outline',
+          'chart-donut',
           t('more.overallBudget'),
           overall === null ? t('more.notSet') : money.format(overall),
           () => show('budget', overall === null ? '' : amountToInput(overall)),
@@ -151,7 +165,7 @@ export default function MoreScreen() {
         row('trash-can-outline', t('more.deleteAccount'), null, () => show('delete'), true),
       ])}
 
-      <Pressable
+      <PressScale
         accessibilityRole="button"
         onPress={() => void signOut()}
         className={`min-h-[56px] items-center gap-3 rounded-xl border border-danger bg-danger-surface px-4 active:opacity-70 ${align.row}`}>
@@ -159,7 +173,7 @@ export default function MoreScreen() {
         <AppText tone="danger" weight="medium" className="text-[16px]">
           {t('auth.signOut')}
         </AppText>
-      </Pressable>
+      </PressScale>
 
       <Dialog
         visible={open === 'name'}
@@ -250,7 +264,7 @@ export default function MoreScreen() {
             onPress: () => {
               const day = Number(text);
               if (!Number.isInteger(day) || day < 1 || day > 31) return setError(t('more.monthStartError'));
-              void run(() => update.mutateAsync({ month_start_day: day }));
+              void run(() => saveWallet({ month_start_day: day }));
             },
           },
           { label: t('common.cancel'), variant: 'outline', onPress: close },
@@ -279,7 +293,7 @@ export default function MoreScreen() {
             onPress: () => {
               const value = parseAmount(text);
               if (value === null) return setError(t('add.errors.amount'));
-              void run(() => update.mutateAsync({ overall_budget: value }));
+              void run(() => saveWallet({ overall_budget: value }));
             },
           },
           ...(overall !== null
@@ -287,7 +301,7 @@ export default function MoreScreen() {
                 {
                   label: t('category.removeBudget'),
                   variant: 'accent' as const,
-                  onPress: () => void run(() => update.mutateAsync({ overall_budget: null })),
+                  onPress: () => void run(() => saveWallet({ overall_budget: null })),
                 },
               ]
             : []),

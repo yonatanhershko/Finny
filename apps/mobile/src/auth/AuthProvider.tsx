@@ -6,6 +6,7 @@ import { AppState } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { clearNotificationsOnSignOut } from '@/notifications';
 
+import { signInWithGoogle, signOutGoogle } from './google';
 import { TERMS_VERSION } from './terms';
 
 /** Error codes the screens translate. Anything unknown becomes `generic`. */
@@ -29,7 +30,16 @@ type AuthContextValue = {
   profileError: boolean;
   /** May use the app. The database enforces this too; this only drives navigation. */
   access: boolean;
+  /**
+   * The signed-in user accepted the terms. Email sign-up accepts them on the way in;
+   * a first Google sign-in is sent to accept them before anything else.
+   */
+  termsAccepted: boolean;
   signIn: (email: string, password: string) => Promise<AuthErrorCode | null>;
+  /** Sign in or sign up with Google. `cancelled` = the user closed the Google page. */
+  signInWithGoogle: () => Promise<AuthErrorCode | 'cancelled' | null>;
+  /** Saves the current terms version and time on the signed-in user. */
+  acceptTerms: () => Promise<AuthErrorCode | null>;
   signUp: (fullName: string, email: string, password: string) => Promise<AuthErrorCode | null>;
   /** Sends a 6-digit reset code to the email. Same answer for unknown emails. */
   requestPasswordReset: (email: string) => Promise<AuthErrorCode | null>;
@@ -137,8 +147,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     profile: signedInProfile,
     profileError: userId !== null && profileLoadedFor === userId && profileError,
     access: signedInProfile ? hasAccess(signedInProfile) : false,
+    termsAccepted: typeof session?.user.user_metadata?.terms_version === 'string',
     signIn: async (email, password) => {
       const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      return error ? toErrorCode(error) : null;
+    },
+    signInWithGoogle: async () => {
+      const result = await signInWithGoogle();
+      if (result === 'cancelled') return 'cancelled';
+      return result === 'ok' ? null : 'generic';
+    },
+    acceptTerms: async () => {
+      // Updates the session too (USER_UPDATED), so the guard moves on by itself.
+      const { error } = await supabase.auth.updateUser({
+        data: { terms_version: TERMS_VERSION, terms_accepted_at: new Date().toISOString() },
+      });
       return error ? toErrorCode(error) : null;
     },
     signUp: async (fullName, email, password) => {
@@ -178,6 +201,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // While still signed in: this device stops getting the user's reminders.
       await clearNotificationsOnSignOut();
       await supabase.auth.signOut();
+      await signOutGoogle();
     },
     refreshProfile: async () => {
       if (userId) await loadProfile(userId);

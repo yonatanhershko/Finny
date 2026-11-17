@@ -20,7 +20,7 @@ export type LeafDensity = 'low' | 'medium' | 'high';
 
 const drifting: { left: `${number}%`; top: `${number}%`; size: number; rotate: number; color: number; duration: number; delay: number }[] = [
   { left: '84%', top: '10%', size: 24, rotate: -40, color: 5, duration: 3300, delay: 0 },
-  { left: '6%', top: '58%', size: 20, rotate: 60, color: 4, duration: 3000, delay: 600 },
+  { left: '6%', top: '82%', size: 20, rotate: 60, color: 4, duration: 3000, delay: 600 },
 ];
 
 export function LeafBackground({

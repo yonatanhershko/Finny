@@ -1,7 +1,7 @@
 import { advisorWhatsAppUrl } from '@finny/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Linking, Pressable, View } from 'react-native';
+import { Linking, View } from 'react-native';
 
 import { useAuth } from '@/auth/AuthProvider';
 import { LockArt } from '@/components/nature/LockArt';
@@ -10,6 +10,7 @@ import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { Screen } from '@/components/ui/Screen';
 import { supabase } from '@/lib/supabase';
+import { PressScale } from '@/components/ui/PressScale';
 
 /**
  * Shown to every signed-in user without access: waiting for Bit payment
@@ -104,14 +105,14 @@ export default function LockedScreen() {
         </AppText>
       ) : null}
 
-      <Pressable
+      <PressScale
         accessibilityRole="button"
         onPress={() => void signOut()}
         className="mt-6 min-h-[44px] justify-center">
         <AppText tone="primary" weight="medium" className="text-[15px]">
           {t('auth.signOut')}
         </AppText>
-      </Pressable>
+      </PressScale>
     </Screen>
   );
 }

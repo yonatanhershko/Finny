@@ -10,6 +10,7 @@ import { useLanguage } from '@/i18n';
 import { AppText } from './AppText';
 import { Button } from './Button';
 import { Icon } from './Icon';
+import { PressScale } from './PressScale';
 
 /** Month-grid date picker in the app's own style. Calendar math by date-fns. */
 export function DatePicker({
@@ -54,23 +55,23 @@ export function DatePicker({
           onPress={(e) => e.stopPropagation()}
           accessibilityViewIsModal>
           <View className="mb-2 flex-row items-center justify-between">
-            <Pressable
+            <PressScale
               accessibilityRole="button"
               accessibilityLabel={t('common.previous')}
               className="h-11 w-11 items-center justify-center"
               onPress={() => setMonth(addMonths(month, -1))}>
               <Icon name="chevron-left" />
-            </Pressable>
+            </PressScale>
             <AppText weight="medium" className="text-[16px]">
               {monthYear(toISODate(month))}
             </AppText>
-            <Pressable
+            <PressScale
               accessibilityRole="button"
               accessibilityLabel={t('common.nextItem')}
               className="h-11 w-11 items-center justify-center"
               onPress={() => setMonth(addMonths(month, 1))}>
               <Icon name="chevron-right" />
-            </Pressable>
+            </PressScale>
           </View>
 
           <View className="flex-row">
@@ -88,7 +89,7 @@ export function DatePicker({
               const iso = isoOf(day);
               const selected = iso === value;
               return (
-                <Pressable
+                <PressScale
                   key={i}
                   accessibilityRole="button"
                   accessibilityState={{ selected }}
@@ -110,7 +111,7 @@ export function DatePicker({
                       {day}
                     </AppText>
                   </View>
-                </Pressable>
+                </PressScale>
               );
             })}
           </View>

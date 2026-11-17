@@ -10,7 +10,7 @@ import {
 } from '@finny/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 
 import { Donut } from '@/components/Donut';
 import { AppText } from '@/components/ui/AppText';
@@ -22,6 +22,9 @@ import { useCategoryName, useCurrentPeriod, useDateFormat, useMoney } from '@/da
 import { useCategories, useCategoryTotals, useGoalDepositsInPeriod } from '@/data/queries';
 import { useRowAlign } from '@/i18n';
 import { useTheme } from '@/theme/ThemeProvider';
+import { PressScale } from '@/components/ui/PressScale';
+import { useCountUp } from '@/lib/useCountUp';
+import { WalletSwitcher } from '@/components/wallet/WalletSwitcher';
 
 type View_ = 'monthly' | 'yearly';
 type Tab = TransactionType | 'balance';
@@ -69,6 +72,10 @@ export default function StatsScreen() {
   const expenseAll = sumOf('expense');
   const savedAll = [...(deposits.data?.values() ?? [])].reduce((a, b) => a + b, 0);
   const balance = periodBalance(incomeAll, savedAll, expenseAll);
+  // Count up once per app launch (2 s at most), only once all the data is in.
+  const amountsReady = totals.isSuccess && deposits.isSuccess;
+  const shownTotal = useCountUp(amountsReady ? total : 0, 'stats.total');
+  const shownBalance = useCountUp(amountsReady ? balance : 0, 'stats.balance');
   const balanceRows = [
     {
       key: 'expense',
@@ -107,9 +114,12 @@ export default function StatsScreen() {
 
   return (
     <Screen leaves="low" scroll className="px-5 pb-8 pt-3">
-      <AppText weight="bold" className="mb-3 text-center text-[20px]" accessibilityRole="header">
+      <AppText weight="bold" className="mb-2 text-center text-[20px]" accessibilityRole="header">
         {t('tabs.stats')}
       </AppText>
+      <View className="mb-3">
+        <WalletSwitcher center />
+      </View>
 
       <Segmented
         value={view}
@@ -124,17 +134,17 @@ export default function StatsScreen() {
       />
 
       <View className="mt-2 flex-row items-center justify-between">
-        <Pressable
+        <PressScale
           accessibilityRole="button"
           accessibilityLabel={t('common.previous')}
           className="h-11 w-11 items-center justify-center"
           onPress={() => setOffset(offset - 1)}>
           <Icon name={back} tone="muted" />
-        </Pressable>
+        </PressScale>
         <AppText tone="muted" className="text-[14px]">
           {label}
         </AppText>
-        <Pressable
+        <PressScale
           accessibilityRole="button"
           accessibilityLabel={t('common.nextItem')}
           accessibilityState={{ disabled: offset >= 0 }}
@@ -142,14 +152,14 @@ export default function StatsScreen() {
           className={`h-11 w-11 items-center justify-center ${offset >= 0 ? 'opacity-30' : ''}`}
           onPress={() => setOffset(offset + 1)}>
           <Icon name={forward} tone="muted" />
-        </Pressable>
+        </PressScale>
       </View>
 
       <View className="mb-3 mt-1 flex-row justify-center gap-2">
         {(['expense', 'income', 'balance'] as const).map((option) => {
           const selected = type === option;
           return (
-            <Pressable
+            <PressScale
               key={option}
               accessibilityRole="button"
               accessibilityState={{ selected }}
@@ -160,7 +170,7 @@ export default function StatsScreen() {
               <AppText weight={selected ? 'medium' : 'regular'} className="text-[14px]">
                 {t(option === 'expense' ? 'stats.expenses' : option === 'income' ? 'stats.income' : 'stats.balance')}
               </AppText>
-            </Pressable>
+            </PressScale>
           );
         })}
       </View>
@@ -179,13 +189,14 @@ export default function StatsScreen() {
         <>
           <View className="items-center">
             <Donut
+              introKey="stats.balance"
               slices={balanceRows.map((r) => ({
                 key: r.key,
                 value: r.value,
                 color: r.color,
               }))}>
               <AppText weight="bold" className="text-[24px]">
-                {money.format(balance)}
+                {money.format(shownBalance)}
               </AppText>
               <AppText tone="muted" className="text-[13px]">
                 {t('stats.balance')}
@@ -233,13 +244,14 @@ export default function StatsScreen() {
         <>
           <View className="items-center">
             <Donut
+              introKey={`stats.${type}`}
               slices={rows.map((r) => ({
                 key: r.category_id,
                 value: r.total,
                 color: r.category?.color ?? '#8A9099',
               }))}>
               <AppText weight="bold" className="text-[24px]">
-                {money.format(total)}
+                {money.format(shownTotal)}
               </AppText>
               <AppText tone="muted" className="text-[13px]">
                 {t(type === 'expense' ? 'stats.totalExpenses' : 'stats.totalIncome')}

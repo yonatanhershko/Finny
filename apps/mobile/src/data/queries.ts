@@ -9,15 +9,19 @@ import type {
   Transaction,
   TransactionType,
   UserSettings,
+  Wallet,
 } from '@finny/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { supabase } from '@/lib/supabase';
 
+import { useWalletId } from './walletContext';
+
 /**
  * All reads and writes of the user's financial data. Amounts are integers in
  * minor units everywhere. Row Level Security scopes every call to the signed-in
- * user, so no user id is sent from here.
+ * user, so no user id is sent from here. Money data is also scoped to the current
+ * wallet: every key holds its id, so switching wallets never shows another wallet's rows.
  */
 
 function unwrap<T>(result: { data: T | null; error: { message: string } | null }): T {
@@ -27,12 +31,14 @@ function unwrap<T>(result: { data: T | null; error: { message: string } | null }
 
 const keys = {
   settings: ['settings'] as const,
-  categories: ['categories'] as const,
-  totals: (p: Period) => ['totals', p.start, p.end] as const,
-  transactions: (p: Period | null, categoryId?: string) =>
-    ['transactions', p?.start ?? 'all', p?.end ?? 'all', categoryId ?? 'all'] as const,
+  wallets: ['wallets'] as const,
+  categories: (w: string) => ['categories', w] as const,
+  totals: (w: string, p: Period) => ['totals', w, p.start, p.end] as const,
+  transactions: (w: string, p: Period | null, categoryId?: string) =>
+    ['transactions', w, p?.start ?? 'all', p?.end ?? 'all', categoryId ?? 'all'] as const,
+  /** Prefix of every goal and deposit query; invalidating it refreshes them all. */
   goals: ['goals'] as const,
-  goalTotals: ['goalTotals'] as const,
+  walletGoals: (w: string) => ['goals', w] as const,
 };
 
 /** After any change to transactions, every sum on screen may be stale. */
@@ -68,14 +74,107 @@ export function useUpdateSettings() {
   });
 }
 
+// ---- wallets ----------------------------------------------------------------
+
+export function useWallets(enabled = true) {
+  return useQuery({
+    queryKey: keys.wallets,
+    enabled,
+    queryFn: async () =>
+      unwrap<Wallet[]>(await supabase.from('wallets').select('*').order('sort_order').order('created_at')),
+  });
+}
+
+export type WalletPatch = Partial<
+  Pick<Wallet, 'name' | 'color' | 'icon' | 'sort_order' | 'month_start_day' | 'overall_budget'>
+>;
+
+export function useUpdateWallet() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { id: string } & WalletPatch) => {
+      const { id, ...patch } = input;
+      return unwrap<Wallet>(await supabase.from('wallets').update(patch).eq('id', id).select().single());
+    },
+    onSuccess: (data) =>
+      client.setQueryData<Wallet[]>(keys.wallets, (list) => list?.map((w) => (w.id === data.id ? data : w))),
+  });
+}
+
+/** Move one wallet to a new place in the list. */
+export function useMoveWallet() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ list, from, to }: { list: Wallet[]; from: number; to: number }) => {
+      const order = [...list];
+      const [moved] = order.splice(from, 1);
+      order.splice(to, 0, moved);
+      // Write every wallet's new index, so equal or gapped orders straighten out too.
+      const changed = order.map((w, index) => ({ w, index })).filter(({ w, index }) => w.sort_order !== index);
+      const results = await Promise.all(
+        changed.map(({ w, index }) => supabase.from('wallets').update({ sort_order: index }).eq('id', w.id)),
+      );
+      for (const result of results) if (result.error) throw new Error(result.error.message);
+    },
+    onSettled: () => client.invalidateQueries({ queryKey: keys.wallets }),
+  });
+}
+
+export class WalletLimitError extends Error {}
+
+/** New wallet with the default categories (server side). At most 4, enforced by the database. */
+export function useCreateWallet() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { name: string; color: string; icon: string }) => {
+      const { data, error } = await supabase.rpc('create_wallet', {
+        p_name: input.name.trim(),
+        p_color: input.color,
+        p_icon: input.icon,
+      });
+      if (error) throw error.message.includes('wallet_limit') ? new WalletLimitError() : new Error(error.message);
+      return data as Wallet;
+    },
+    onSuccess: async (wallet) => {
+      // In the list at once, so switching to it never falls back to another wallet.
+      client.setQueryData<Wallet[]>(keys.wallets, (list) => (list ? [...list, wallet] : [wallet]));
+      await client.invalidateQueries({ queryKey: keys.wallets });
+    },
+  });
+}
+
+/** Deletes a wallet and all its data for good. The database keeps the last one. */
+export function useDeleteWallet() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.rpc('delete_wallet', { p_wallet_id: id });
+      if (error) throw new Error(error.message);
+      return id;
+    },
+    onSuccess: async (id) => {
+      for (const prefix of ['categories', 'totals', 'transactions', 'goals']) {
+        client.removeQueries({ queryKey: [prefix, id] });
+      }
+      await client.invalidateQueries({ queryKey: keys.wallets });
+    },
+  });
+}
+
 // ---- categories -------------------------------------------------------------
 
 export function useCategories() {
+  const wallet = useWalletId();
   return useQuery({
-    queryKey: keys.categories,
+    queryKey: keys.categories(wallet),
     queryFn: async () =>
       unwrap<Category[]>(
-        await supabase.from('categories').select('*').order('sort_order').order('created_at'),
+        await supabase
+          .from('categories')
+          .select('*')
+          .eq('wallet_id', wallet)
+          .order('sort_order')
+          .order('created_at'),
       ),
   });
 }
@@ -90,6 +189,7 @@ export type CategoryInput = {
 
 export function useSaveCategory() {
   const client = useQueryClient();
+  const wallet = useWalletId();
   return useMutation({
     mutationFn: async (input: { id?: string; sort_order?: number } & Partial<CategoryInput>) => {
       const { id, ...fields } = input;
@@ -102,12 +202,12 @@ export function useSaveCategory() {
       return unwrap<Category>(
         await supabase
           .from('categories')
-          .insert({ ...fields, type: fields.type, sort_order: fields.sort_order ?? 999 })
+          .insert({ ...fields, type: fields.type, wallet_id: wallet, sort_order: fields.sort_order ?? 999 })
           .select()
           .single(),
       );
     },
-    onSuccess: () => client.invalidateQueries({ queryKey: keys.categories }),
+    onSuccess: () => client.invalidateQueries({ queryKey: ['categories'] }),
   });
 }
 
@@ -136,27 +236,29 @@ export function useRemoveCategory() {
       }
       return 'deleted' as const;
     },
-    onSuccess: () => client.invalidateQueries({ queryKey: keys.categories }),
+    onSuccess: () => client.invalidateQueries({ queryKey: ['categories'] }),
   });
 }
 
 // ---- totals and transactions ------------------------------------------------
 
 export function useCategoryTotals(period: Period) {
+  const wallet = useWalletId();
   return useQuery({
-    queryKey: keys.totals(period),
+    queryKey: keys.totals(wallet, period),
     queryFn: async () =>
       unwrap<CategoryTotal[]>(
-        await supabase.rpc('category_totals', { p_from: period.start, p_to: period.end }),
+        await supabase.rpc('category_totals', { p_wallet_id: wallet, p_from: period.start, p_to: period.end }),
       ),
   });
 }
 
 export function useTransactions(period: Period | null, categoryId?: string) {
+  const wallet = useWalletId();
   return useQuery({
-    queryKey: keys.transactions(period, categoryId),
+    queryKey: keys.transactions(wallet, period, categoryId),
     queryFn: async () => {
-      let query = supabase.from('transactions').select('*');
+      let query = supabase.from('transactions').select('*').eq('wallet_id', wallet);
       if (period) query = query.gte('date', period.start).lte('date', period.end);
       if (categoryId) query = query.eq('category_id', categoryId);
       return unwrap<Transaction[]>(
@@ -289,11 +391,13 @@ export async function materializeRecurring(): Promise<number> {
 export type GoalWithSaved = Goal & { saved: number };
 
 export function useGoals() {
+  const wallet = useWalletId();
   return useQuery({
-    queryKey: keys.goals,
+    queryKey: keys.walletGoals(wallet),
     queryFn: async (): Promise<GoalWithSaved[]> => {
+      // goal_totals sums every goal of the user; only this wallet's goals are listed.
       const [goals, totals] = await Promise.all([
-        supabase.from('goals').select('*').order('created_at'),
+        supabase.from('goals').select('*').eq('wallet_id', wallet).order('created_at'),
         supabase.rpc('goal_totals'),
       ]);
       const saved = new Map(unwrap<GoalTotal[]>(totals).map((t) => [t.goal_id, t.saved]));
@@ -304,14 +408,16 @@ export function useGoals() {
 
 /** Money deposited per goal inside one budget period. Never part of expense totals. */
 export function useGoalDepositsInPeriod(period: Period) {
+  const wallet = useWalletId();
   return useQuery({
     // Under the 'goals' key so a new deposit refreshes it.
-    queryKey: [...keys.goals, 'deposits', period.start, period.end] as const,
+    queryKey: [...keys.walletGoals(wallet), 'deposits', period.start, period.end] as const,
     queryFn: async (): Promise<Map<string, number>> => {
       const rows = unwrap<Pick<GoalDeposit, 'goal_id' | 'amount'>[]>(
         await supabase
           .from('goal_deposits')
           .select('goal_id, amount')
+          .eq('wallet_id', wallet)
           .gte('date', period.start)
           .lte('date', period.end)
           .limit(2000),
@@ -325,6 +431,7 @@ export function useGoalDepositsInPeriod(period: Period) {
 
 export function useSaveGoal() {
   const client = useQueryClient();
+  const wallet = useWalletId();
   return useMutation({
     mutationFn: async (input: { id?: string; name: string; target_amount: number; icon?: string }) => {
       const { id, ...fields } = input;
@@ -332,7 +439,7 @@ export function useSaveGoal() {
       if (id) {
         unwrap(await supabase.from('goals').update({ ...fields, name }).eq('id', id).select());
       } else {
-        unwrap(await supabase.from('goals').insert({ ...fields, name }).select());
+        unwrap(await supabase.from('goals').insert({ ...fields, name, wallet_id: wallet }).select());
       }
     },
     onSuccess: () => client.invalidateQueries({ queryKey: keys.goals }),
@@ -359,13 +466,15 @@ export function useDeleteGoal() {
 
 /** Every deposit, newest first. Archived goals' deposits are included. */
 export function useAllDeposits() {
+  const wallet = useWalletId();
   return useQuery({
-    queryKey: [...keys.goals, 'deposits', 'all'] as const,
+    queryKey: [...keys.walletGoals(wallet), 'deposits', 'all'] as const,
     queryFn: async () =>
       unwrap<GoalDeposit[]>(
         await supabase
           .from('goal_deposits')
           .select('*')
+          .eq('wallet_id', wallet)
           .order('date', { ascending: false })
           .order('created_at', { ascending: false })
           .limit(2000),

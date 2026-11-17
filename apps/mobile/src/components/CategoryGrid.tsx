@@ -2,7 +2,7 @@ import { categoryPalette } from '@finny/tokens';
 import type { Category, TransactionType } from '@finny/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 
 import { useCategoryName } from '@/data/hooks';
 import { useSaveCategory } from '@/data/queries';
@@ -11,6 +11,7 @@ import { AppText } from './ui/AppText';
 import { Dialog } from './ui/Dialog';
 import { CategoryIcon, Icon } from './ui/Icon';
 import { TextField } from './ui/TextField';
+import { PressScale } from '@/components/ui/PressScale';
 
 export const CATEGORY_ICONS = [
   'tag', 'car', 'gas-station', 'bus', 'silverware-fork-knife', 'coffee', 'cart', 'food-apple',
@@ -26,26 +27,33 @@ export function CategoryForm({
   color,
   onChange,
   error,
+  label,
+  maxLength = 40,
+  icons = CATEGORY_ICONS,
 }: {
   name: string;
   icon: string;
   color: string;
   onChange: (patch: { name?: string; icon?: string; color?: string }) => void;
   error?: string | null;
+  /** Name field label. Default: the category name label. */
+  label?: string;
+  maxLength?: number;
+  icons?: readonly string[];
 }) {
   const { t } = useTranslation();
   return (
     <View className="gap-3">
       <TextField
-        label={t('categories.name')}
+        label={label ?? t('categories.name')}
         value={name}
         onChangeText={(text) => onChange({ name: text })}
         error={error}
-        maxLength={40}
+        maxLength={maxLength}
       />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2">
-        {CATEGORY_ICONS.map((item) => (
-          <Pressable
+        {icons.map((item) => (
+          <PressScale
             key={item}
             accessibilityRole="button"
             accessibilityLabel={item}
@@ -55,12 +63,12 @@ export function CategoryForm({
               item === icon ? 'border-primary bg-surface' : 'border-transparent'
             }`}>
             <Icon name={item} color={item === icon ? color : undefined} tone="muted" />
-          </Pressable>
+          </PressScale>
         ))}
       </ScrollView>
       <View className="flex-row flex-wrap gap-2">
         {categoryPalette.map((item) => (
-          <Pressable
+          <PressScale
             key={item}
             accessibilityRole="button"
             accessibilityLabel={item}
@@ -70,7 +78,7 @@ export function CategoryForm({
               item === color ? 'border-text' : 'border-transparent'
             }`}>
             <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: item }} />
-          </Pressable>
+          </PressScale>
         ))}
       </View>
     </View>
@@ -121,7 +129,7 @@ export function CategoryGrid({
           const selected = category.id === selectedId;
           return (
             <View key={category.id} style={{ width: '25%', padding: 4 }}>
-              <Pressable
+              <PressScale
                 accessibilityRole="button"
                 accessibilityState={{ selected }}
                 accessibilityLabel={nameOf(category)}
@@ -133,12 +141,12 @@ export function CategoryGrid({
                 <AppText className="text-center text-[12px]" numberOfLines={1}>
                   {nameOf(category)}
                 </AppText>
-              </Pressable>
+              </PressScale>
             </View>
           );
         })}
         <View style={{ width: '25%', padding: 4 }}>
-          <Pressable
+          <PressScale
             accessibilityRole="button"
             accessibilityLabel={t('categories.add')}
             onPress={() => setAdding(true)}
@@ -147,7 +155,7 @@ export function CategoryGrid({
             <AppText tone="primary" className="text-center text-[12px]" numberOfLines={1}>
               {t('categories.new')}
             </AppText>
-          </Pressable>
+          </PressScale>
         </View>
       </View>
 

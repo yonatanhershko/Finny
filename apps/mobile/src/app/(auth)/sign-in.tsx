@@ -1,24 +1,37 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { KeyboardAvoidingView, Platform, Pressable, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, View } from 'react-native';
 
 import { useAuth } from '@/auth/AuthProvider';
 import { checkEmail } from '@/auth/validation';
+import { GoogleLogo } from '@/components/GoogleLogo';
 import { WalletHero } from '@/components/nature/WalletHero';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { Screen } from '@/components/ui/Screen';
 import { TextField } from '@/components/ui/TextField';
+import { PressScale } from '@/components/ui/PressScale';
 
 export default function SignInScreen() {
   const { t } = useTranslation();
-  const { signIn } = useAuth();
+  const { signIn, signInWithGoogle } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const [googleBusy, setGoogleBusy] = useState(false);
+
+  const google = async () => {
+    setFormError(null);
+    setGoogleBusy(true);
+    const error = await signInWithGoogle();
+    setGoogleBusy(false);
+    // Closing the Google page is not an error. On success the guard moves on.
+    if (error && error !== 'cancelled') setFormError(t('auth.googleFailed'));
+  };
 
   const submit = async () => {
     const emailProblem = checkEmail(email);
@@ -74,23 +87,38 @@ export default function SignInScreen() {
             </AppText>
           ) : null}
           <Button label={t('auth.signIn')} onPress={submit} loading={busy} />
-          <Pressable
+          <PressScale
             accessibilityRole="link"
             onPress={() => router.push('/forgot')}
             className="min-h-[44px] items-center justify-center">
             <AppText tone="primary" weight="medium" className="text-[15px]">
               {t('auth.forgot.link')}
             </AppText>
-          </Pressable>
+          </PressScale>
+          <View className="flex-row items-center gap-3" accessible={false}>
+            <View className="h-px flex-1 bg-border" />
+            <AppText tone="muted" className="text-center text-[14px]">
+              {t('auth.or')}
+            </AppText>
+            <View className="h-px flex-1 bg-border" />
+          </View>
+          <Button
+            label={t('auth.google')}
+            variant="outline"
+            icon={<GoogleLogo />}
+            onPress={google}
+            loading={googleBusy}
+            disabled={busy}
+          />
         </View>
-        <Pressable
+        <PressScale
           accessibilityRole="link"
           onPress={() => router.replace('/sign-up')}
           className="mt-5 min-h-[44px] justify-center">
           <AppText tone="primary" weight="medium" className="text-[15px]">
             {t('auth.noAccount')}
           </AppText>
-        </Pressable>
+        </PressScale>
       </Screen>
     </KeyboardAvoidingView>
   );

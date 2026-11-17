@@ -25,3 +25,12 @@ export async function loadLanguagePreference(): Promise<Language | null> {
 export async function saveLanguagePreference(value: Language): Promise<void> {
   await AsyncStorage.setItem(LANGUAGE_KEY, value);
 }
+
+/** The wallet last open on this device, per user. null = never chosen. */
+export async function loadLastWallet(userId: string): Promise<string | null> {
+  return AsyncStorage.getItem(`finny.wallet.${userId}`).catch(() => null);
+}
+
+export async function saveLastWallet(userId: string, walletId: string): Promise<void> {
+  await AsyncStorage.setItem(`finny.wallet.${userId}`, walletId).catch(() => undefined);
+}

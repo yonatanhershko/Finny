@@ -1,17 +1,15 @@
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, View } from 'react-native';
-
-import { useTheme } from '@/theme/ThemeProvider';
+import { View } from 'react-native';
 
 import { AppText } from './AppText';
 import { Button } from './Button';
+import { SkeletonList } from './Skeleton';
 
 export function Loading() {
-  const { colors } = useTheme();
   const { t } = useTranslation();
   return (
-    <View className="items-center py-10" accessibilityLabel={t('common.loading')}>
-      <ActivityIndicator color={colors.primary} />
+    <View accessibilityLabel={t('common.loading')} accessibilityRole="progressbar">
+      <SkeletonList />
     </View>
   );
 }

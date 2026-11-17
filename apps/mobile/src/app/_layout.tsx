@@ -68,6 +68,7 @@ export default function RootLayout() {
 /**
  * The global navigation guard. Exactly one group is reachable at a time:
  *   signed out            -> (auth)
+ *   signed in, no terms   -> accept-terms (first Google sign-in)
  *   signed in, no access  -> locked   (pending / rejected / expired)
  *   signed in, access     -> (app)
  * The root index screen redirects to the right one. The database enforces the
@@ -75,11 +76,13 @@ export default function RootLayout() {
  */
 function GuardedStack() {
   const { theme, colors } = useTheme();
-  const { loading, session, access } = useAuth();
+  const { loading, session, access, termsAccepted } = useAuth();
 
   if (loading) return <SplashScreenArt />;
 
   const signedIn = session !== null;
+  // A first Google sign-in must accept the terms before anything else.
+  const ready = signedIn && termsAccepted;
 
   return (
     <>
@@ -87,13 +90,17 @@ function GuardedStack() {
       <Stack
         screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
         <Stack.Screen name="index" />
+        <Stack.Screen name="auth-callback" />
         <Stack.Protected guard={!signedIn}>
           <Stack.Screen name="(auth)" />
         </Stack.Protected>
-        <Stack.Protected guard={signedIn && !access}>
+        <Stack.Protected guard={signedIn && !termsAccepted}>
+          <Stack.Screen name="accept-terms" />
+        </Stack.Protected>
+        <Stack.Protected guard={ready && !access}>
           <Stack.Screen name="locked" />
         </Stack.Protected>
-        <Stack.Protected guard={signedIn && access}>
+        <Stack.Protected guard={ready && access}>
           <Stack.Screen name="(app)" />
         </Stack.Protected>
       </Stack>

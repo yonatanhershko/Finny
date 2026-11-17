@@ -133,10 +133,6 @@ export default function NotificationsScreen() {
               {item('contactless-payment', 'purchase', { value: false })}
             </View>
           </View>
-
-          <AppText tone="muted" className="text-[13px] leading-[19px]">
-            {t('notifications.pushNote')}
-          </AppText>
         </>
       )}
     </Screen>

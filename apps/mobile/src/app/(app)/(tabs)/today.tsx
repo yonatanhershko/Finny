@@ -1,20 +1,24 @@
 import { budgetRemaining, type Category, percentOf, periodBalance } from '@finny/shared';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
+import { RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Backdrop } from '@/components/nature/Backdrop';
 import { LeafBackground } from '@/components/nature/LeafBackground';
 import { AppText } from '@/components/ui/AppText';
 import { BudgetBar } from '@/components/ui/BudgetBar';
+import { PressScale } from '@/components/ui/PressScale';
 import { useTabBarHeight } from '@/components/ui/TabBarHeight';
 import { CategoryIcon, Icon } from '@/components/ui/Icon';
 import { EmptyState, ErrorState, Loading } from '@/components/ui/States';
 import { useCategoryName, useCurrentPeriod, useDateFormat, useMoney } from '@/data/hooks';
-import { useCategories, useCategoryTotals, useGoalDepositsInPeriod, useGoals, useSettings } from '@/data/queries';
+import { useCategories, useCategoryTotals, useGoalDepositsInPeriod, useGoals } from '@/data/queries';
+import { useWallet } from '@/data/walletContext';
+import { WalletSwitcher } from '@/components/wallet/WalletSwitcher';
 import { useRowAlign } from '@/i18n';
 import { useTheme } from '@/theme/ThemeProvider';
+import { useCountUp } from '@/lib/useCountUp';
 
 export default function TodayScreen() {
   const { t } = useTranslation();
@@ -25,16 +29,15 @@ export default function TodayScreen() {
   const nameOf = useCategoryName();
   const { dayMonth } = useDateFormat();
   const { period, today } = useCurrentPeriod();
-  const settings = useSettings();
+  const { wallet } = useWallet();
   const categories = useCategories();
   const totals = useCategoryTotals(period);
   const goals = useGoals();
   const deposits = useGoalDepositsInPeriod(period);
 
-  const loading = settings.isLoading || categories.isLoading || totals.isLoading;
-  const failed = settings.isError || categories.isError || totals.isError;
+  const loading = categories.isLoading || totals.isLoading;
+  const failed = categories.isError || totals.isError;
   const refetch = () => {
-    void settings.refetch();
     void categories.refetch();
     void totals.refetch();
     void goals.refetch();
@@ -47,7 +50,12 @@ export default function TodayScreen() {
   const totalIncome = (totals.data ?? []).filter((x) => x.type === 'income').reduce((a, x) => a + x.total, 0);
   const totalSaved = [...(deposits.data?.values() ?? [])].reduce((a, b) => a + b, 0);
   const balance = periodBalance(totalIncome, totalSaved, totalExpense);
-  const overall = settings.data?.overall_budget ?? null;
+  // Amounts count up once per app launch (2 s at most), then show at once. They start
+  // only when all their data is in, so the count never heads for a half-loaded number.
+  const amountsReady = totals.isSuccess && deposits.isSuccess;
+  const shownExpense = useCountUp(amountsReady ? totalExpense : 0, 'today.expense');
+  const shownBalance = useCountUp(amountsReady ? balance : 0, 'today.balance');
+  const overall = wallet.overall_budget;
   const overallLeft = overall === null ? null : budgetRemaining(overall, totalExpense);
 
   // Show a category when it has spending this period or a budget to track.
@@ -73,14 +81,15 @@ export default function TodayScreen() {
           contentContainerClassName="px-5 pb-8"
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={false} onRefresh={refetch} tintColor={colors.primary} />}>
-          <View className="h-11 flex-row items-center justify-end">
-            <Pressable
+          <View className="min-h-[44px] flex-row items-center justify-between gap-2">
+            <WalletSwitcher />
+            <PressScale
               accessibilityRole="button"
               accessibilityLabel={t('notifications.title')}
               className="h-11 w-11 items-center justify-center"
               onPress={() => router.push('/notifications')}>
               <Icon name="bell-outline" size={24} tone="primary" />
-            </Pressable>
+            </PressScale>
           </View>
 
           <View className="items-center">
@@ -91,7 +100,7 @@ export default function TodayScreen() {
               {t('today.totalExpenses')}
             </AppText>
             <AppText weight="bold" className="text-[42px] leading-[52px]">
-              {money.format(totalExpense)}
+              {money.format(shownExpense)}
             </AppText>
             {overall !== null && overallLeft !== null && (
               <AppText
@@ -112,14 +121,14 @@ export default function TodayScreen() {
                   {t('today.balanceThisPeriod')}
                 </AppText>
                 <AppText weight="medium" className="text-[15px]">
-                  {money.format(balance)}
+                  {money.format(shownBalance)}
                 </AppText>
               </View>
             )}
           </View>
 
           <View className="mt-4 flex-row gap-3">
-            <Pressable
+            <PressScale
               accessibilityRole="button"
               accessibilityLabel={t('today.addExpense')}
               className="min-h-[64px] flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-accent active:opacity-80"
@@ -128,8 +137,8 @@ export default function TodayScreen() {
               <AppText weight="bold" tone="onAccent" className="text-[19px]">
                 {t('common.expense')}
               </AppText>
-            </Pressable>
-            <Pressable
+            </PressScale>
+            <PressScale
               accessibilityRole="button"
               accessibilityLabel={t('today.addIncome')}
               className="min-h-[64px] flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-80"
@@ -138,7 +147,7 @@ export default function TodayScreen() {
               <AppText weight="bold" tone="onPrimary" className="text-[19px]">
                 {t('common.income')}
               </AppText>
-            </Pressable>
+            </PressScale>
           </View>
 
           <AppText weight="medium" className="mb-2 mt-6 text-[17px]">
@@ -221,7 +230,7 @@ function SummaryCard({
   const money = useMoney();
   const align = useRowAlign();
   return (
-    <Pressable
+    <PressScale
       accessibilityRole="button"
       accessibilityLabel={`${name}, ${money.format(amount)}`}
       onPress={onPress}
@@ -235,7 +244,7 @@ function SummaryCard({
           {money.format(amount)}
         </AppText>
       </View>
-    </Pressable>
+    </PressScale>
   );
 }
 
@@ -257,7 +266,7 @@ function CategoryCard({ category, spent }: { category: Category; spent: number }
         : `${name}, ${t('today.spentOf', { spent: money.format(spent), budget: money.format(budget) })}, ${percentOf(spent, budget)}%`;
 
   return (
-    <Pressable
+    <PressScale
       accessibilityRole="button"
       accessibilityLabel={summary}
       onPress={() => router.push({ pathname: '/category/[id]', params: { id: category.id } })}
@@ -293,9 +302,9 @@ function CategoryCard({ category, spent }: { category: Category; spent: number }
       </View>
       {budget !== null && (
         <View className="mt-3">
-          <BudgetBar spent={spent} budget={budget} />
+          <BudgetBar spent={spent} budget={budget} introKey={`today.budget.${category.id}`} />
         </View>
       )}
-    </Pressable>
+    </PressScale>
   );
 }

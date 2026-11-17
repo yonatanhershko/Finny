@@ -2,7 +2,7 @@ import { amountToInput, budgetRemaining, parseAmount, type Transaction } from '@
 import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 
 import { DeleteTransactionDialog } from '@/components/DeleteTransactionDialog';
 import { ScreenHeader } from '@/components/ScreenHeader';
@@ -15,6 +15,7 @@ import { Screen } from '@/components/ui/Screen';
 import { EmptyState, ErrorState, Loading } from '@/components/ui/States';
 import { useCategoryName, useCurrentPeriod, useMoney } from '@/data/hooks';
 import { useCategories, useSaveCategory, useTransactions } from '@/data/queries';
+import { PressScale } from '@/components/ui/PressScale';
 
 /** One category in the current budget month: budget, and its transactions. */
 export default function CategoryScreen() {
@@ -68,7 +69,7 @@ export default function CategoryScreen() {
           <>
             {budget !== null && left !== null && (
               <View className="mb-1 mt-2 gap-2">
-                <BudgetBar spent={spent} budget={budget} />
+                <BudgetBar spent={spent} budget={budget} introKey={`category.budget.${id}`} />
                 <AppText tone={over ? 'danger' : 'primary'} weight={over ? 'bold' : 'regular'} className="text-[14px]">
                   {over
                     ? t('today.overBy', { amount: money.format(-left) })
@@ -76,14 +77,14 @@ export default function CategoryScreen() {
                 </AppText>
               </View>
             )}
-            <Pressable
+            <PressScale
               accessibilityRole="button"
               onPress={openBudget}
               className="mt-1 min-h-[44px] justify-center">
               <AppText tone="primary" weight="medium" className="text-[15px]">
                 {budget === null ? t('category.setBudget') : t('category.changeBudget')}
               </AppText>
-            </Pressable>
+            </PressScale>
           </>
         )}
       </View>

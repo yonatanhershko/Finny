@@ -7,7 +7,7 @@ description: Design system, visual polish, illustration and micro-interactions f
 
 Look: warm paper background, deep green, soft peach accent, rounded cards, leaves. Calm, friendly, not a bank.
 
-- Match the owner's mockups and SVGs in `refreal imgs and svgs/` first. Extend their style; do not replace it.
+- Match the existing leaf art and screens first (the owner's original mockups are in git history). Extend their style; do not replace it.
 - Tokens come from `packages/tokens`. Add a token before adding a new color or size.
 - Hierarchy on every screen: one big number, one primary action, the rest quiet.
 - Leaves: layered clusters in corners and behind hero art, 2–3 green tones, low contrast against the background, never behind body text. More on auth and empty states, fewer on dense lists.

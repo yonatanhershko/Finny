@@ -36,11 +36,13 @@ Init → Phase 1 infra → Phase 5 tokens / theme / i18n / leaf art → Phase 2 
 ## Sign-in
 
 - Email + password first. No email confirmation (no email-sending cost).
+- No welcome screen (owner 2026-11-16): a signed-out user lands straight on sign-in. Sign-up is reached from the link under it; its back button returns to sign-in.
 - Sign-up has three steps: name, email, password. Earlier steps show as rows with a pencil, so the user can jump back and change the name or email. Under the email field is a "Terms of use" tab: tap it, press "I agree" (pinned at the bottom, no need to scroll to the end), and the tab turns green. Continue stays locked until then. No checkbox. The accepted version and time are saved on the auth user (`terms_version`, `terms_accepted_at`). (owner 2026-11-14, no-scroll 2026-11-15)
 - Terms of use: Hebrew + English text in the app i18n files, version `2026-11-15b`, approved by the owner 2026-11-15. Bump `TERMS_VERSION` when the text changes. Operator shown as the owner's private name until a business is registered. Contact: email only. Subscription length is not fixed in the terms: price and length are given to the user before payment (WhatsApp / phone / email, not shown in the app); the operator may grant free or non-expiring access (vip / family).
 - Forgot password: from sign-in. Email → 6-digit code sent by email → code + new password. No OTP at sign-up (the admin approval is the gate; clients are personal, a few per month). Needs custom SMTP and a code template, see `docs/prod-setup.md`. (owner 2026-11-14)
-- Google and Facebook sign-in are wired later, when the owner has the developer accounts.
-- Apple sign-in: not wanted. Open issue: App Store requires an equivalent privacy-focused login (Apple) when third-party social login is offered on iOS. Decide when social login goes in.
+- Google sign-in (owner 2026-11-16): one "Continue with Google" button on the sign-in screen, under the password form; it signs in an existing user or creates a new one. On the phone it uses Google's native sign-in sheet (shows "Finny", not the Supabase address) and Supabase checks the ID token; web and Expo Go fall back to Supabase hosted Google OAuth in the browser, back to `<scheme>://auth-callback`. One Google OAuth web client serves dev and prod (owner 2026-11-17). Name comes from Google. A new Google user never saw the sign-up terms tab, so the first sign-in opens the terms screen: "I agree" saves `terms_version` / `terms_accepted_at`, the other choice signs out. Then the usual locked screen until an admin approves. (terms gate and button placement chosen by Claude) Setup steps: `docs/google-sign-in.md`.
+- Facebook sign-in: later, when the owner has the developer account.
+- Apple sign-in: not wanted. **Open issue, now live:** with Google sign-in on iOS, App Store guideline 4.8 asks for an equivalent privacy-focused login (Sign in with Apple), or review may reject the app. Decide before the first App Store submission: add Apple, or hide the Google button on iOS.
 
 ## Money
 
@@ -69,17 +71,35 @@ Init → Phase 1 infra → Phase 5 tokens / theme / i18n / leaf art → Phase 2 
 - Deleting a goal: the user chooses in the dialog. Default "Delete goal, keep history": the goal disappears from the Goals tab, but its deposits stay in history, stats, balance and export (the goal is archived). Second choice "Delete goal and its deposits": everything is erased and the money returns to the balance. The owner left the choice to Claude; keep-history is the default because the money really was set aside. **(Claude's choice, confirm or change)**
 - Swipe sideways (from the screen edge) goes back on every screen opened from another screen, on iOS and Android. **(owner request 2026-11-15)**
 - Swipe between the main tabs: swipe left opens the tab on your left, swipe right the tab on your right (Today, Stats, Goals, More, left to right). Nothing happens at the first and last tab. **(owner request 2026-11-15)**
-- Not in v1: accounts (cash / card), transfers, tags, receipt photos.
+- Not in v1: accounts (cash / card), transfers, tags, receipt photos. Wallets (separate books) are in, see "Wallets".
+
+## Wallets
+
+Decided by the owner 2026-11-17. Layout and details chosen by Claude from the approved mockup.
+
+- A user can have up to **4 wallets** (for example personal, business). Same limit on every plan. One subscription covers all of them.
+- Each wallet is a separate book: its own transactions, categories, budgets, recurring rules, goals and deposits. Wallets never mix: no totals across wallets, no transfers between them.
+- Per wallet: name, color, icon, order, budget month start day, overall monthly budget.
+- For the whole account: currency, language, theme, notifications. (One currency keeps the numbers simple; a per-wallet currency can come later without breaking data.)
+- Every account has at least one wallet. The first one is "Personal" (translated name until the user renames it). Existing data moves into it, so nothing changes for a user who never adds a second wallet.
+- A new wallet starts with the default categories and no budgets, goals or transactions.
+- The app opens on the wallet used last on this device. If that wallet is gone, it opens the first one.
+- **Which wallet am I in:** a chip with the wallet's color dot and name at the top of Home, Stats and Goals; the add sheet says "In wallet: X".
+- **Switch / create / edit:** tap the chip → a sheet slides up from the bottom: the wallets (current one checked, tap to switch), a pencil on each to edit name, color and icon, and "New wallet" with a count (3/4). At 4 wallets "New wallet" is replaced by "Up to 4 wallets".
+- **Manage:** More → Wallets: order (move up / down), edit, export the wallet to CSV, delete.
+- **Delete:** only from More → Wallets. Deletes the wallet and all its data for good. The dialog offers the CSV export first and asks the user to type the wallet's name. The last wallet cannot be deleted. When the current wallet is deleted, the app moves to the first remaining one.
+- History and the CSV export cover the current wallet only.
+- Enforced in the database: the 4 limit, the last-wallet rule, and that every row's wallet belongs to the same user.
 
 ## Screens
 
 - Tabs: Today (home), Stats, Goals, More.
-- Home: no wallet in the header after login (owner 2026-11-14); bell, date, period expense total, overall left, Income and Expense buttons, category cards. Tap a card → that period's transactions with edit / delete.
+- Home: no wallet logo in the header after login (owner 2026-11-14); wallet chip (see "Wallets"), bell, date, period expense total, overall left, Income and Expense buttons, category cards. Tap a card → that period's transactions with edit / delete.
 - Add transaction: bottom sheet; category is an icon grid with a "+" tile at the end.
 - Export is a CSV file (opens in Excel and Google Sheets, Hebrew included).
 - Stats: monthly / yearly, expense / income, previous / next period, donut with total in the center, legend with percent and sum, change versus the previous period.
 - Goals: cards with target, saved, progress bar, deposit button.
-- More: account, language, theme, currency, budget month start, notifications, history + Excel export, delete account, sign out.
+- More: account, language, theme, currency, wallets, budget month start and overall budget (of the current wallet), notifications, history + Excel export, delete account, sign out.
 - Login and every register step: wallet illustration with moving 3D leaves. Many leaves across the app.
 - Reminders: see "Notifications". The daily "log your spending" reminder is dropped (owner 2026-11-15).
 - Delete account: hard delete of all data and the auth user, after confirmation.

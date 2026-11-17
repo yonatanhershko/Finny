@@ -1,13 +1,14 @@
 import type { Category, Transaction } from '@finny/shared';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 
 import { useCategoryName, useDateFormat, useMoney } from '@/data/hooks';
 import { useRowAlign } from '@/i18n';
 
 import { AppText } from './ui/AppText';
 import { CategoryIcon, Icon } from './ui/Icon';
+import { PressScale } from '@/components/ui/PressScale';
 
 /** One transaction line. Tap to edit; the trash button asks the parent to delete. */
 export function TransactionRow({
@@ -29,7 +30,7 @@ export function TransactionRow({
 
   return (
     <View className={`items-center rounded-lg border border-border bg-surface ${align.row}`}>
-      <Pressable
+      <PressScale
         accessibilityRole="button"
         accessibilityLabel={`${title}, ${money.format(transaction.amount)}, ${dayMonthShort(transaction.date)}. ${t('common.edit')}`}
         onPress={() => router.push({ pathname: '/add', params: { id: transaction.id } })}
@@ -50,14 +51,14 @@ export function TransactionRow({
           {sign}
           {money.format(transaction.amount)}
         </AppText>
-      </Pressable>
-      <Pressable
+      </PressScale>
+      <PressScale
         accessibilityRole="button"
         accessibilityLabel={`${t('common.delete')}: ${title}`}
         onPress={onDelete}
         className="h-[60px] w-11 items-center justify-center">
         <Icon name="trash-can-outline" size={20} tone="muted" />
-      </Pressable>
+      </PressScale>
     </View>
   );
 }

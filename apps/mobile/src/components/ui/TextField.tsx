@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, TextInput, type TextInputProps, View } from 'react-native';
+import { TextInput, type TextInputProps, View } from 'react-native';
 
 import { useRowAlign } from '@/i18n';
 import { useTheme } from '@/theme/ThemeProvider';
 
 import { AppText } from './AppText';
 import { Icon } from './Icon';
+import { Shake } from './Shake';
+import { PressScale } from './PressScale';
 
 export type TextFieldProps = TextInputProps & {
   label: string;
@@ -23,7 +25,7 @@ export function TextField({ label, error, secureTextEntry, ...props }: TextField
   const borderClass = error ? 'border-danger' : 'border-border';
 
   return (
-    <View className="gap-1">
+    <Shake trigger={error} style={{ gap: 4 }}>
       <AppText tone="muted" className="text-[13px]">
         {label}
       </AppText>
@@ -38,14 +40,14 @@ export function TextField({ label, error, secureTextEntry, ...props }: TextField
             {...props}
             style={[direction, props.style]}
           />
-          <Pressable
+          <PressScale
             onPress={() => setRevealed((value) => !value)}
             accessibilityRole="button"
             accessibilityLabel={revealed ? t('common.hidePassword') : t('common.showPassword')}
             hitSlop={6}
             className="h-[52px] w-12 items-center justify-center">
             <Icon name={revealed ? 'eye-off-outline' : 'eye-outline'} tone="muted" />
-          </Pressable>
+          </PressScale>
         </View>
       ) : (
         <TextInput
@@ -61,6 +63,6 @@ export function TextField({ label, error, secureTextEntry, ...props }: TextField
           {error}
         </AppText>
       ) : null}
-    </View>
+    </Shake>
   );
 }

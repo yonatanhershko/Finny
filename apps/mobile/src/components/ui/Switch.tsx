@@ -62,7 +62,6 @@ export function Switch({
       aria-checked={value}
       disabled={disabled}
       onPress={() => onValueChange(!value)}
-      // 52x32 on screen, 44pt tall to the finger
       hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
       style={{ opacity: disabled ? 0.5 : 1 }}>
       <Animated.View

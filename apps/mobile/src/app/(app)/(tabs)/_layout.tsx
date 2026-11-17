@@ -63,6 +63,8 @@ export default function TabsLayout() {
         <Tabs
           screenOptions={{
             headerShown: false,
+            // Soft cross-fade when moving between tabs.
+            animation: "fade",
             tabBarActiveTintColor: colors.primary,
             tabBarInactiveTintColor: colors.textMuted,
             // Absolute: screens (and their leaves) run under the bar.

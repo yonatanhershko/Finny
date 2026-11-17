@@ -1,6 +1,7 @@
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 
 import { AppText } from './AppText';
+import { PressScale } from './PressScale';
 
 /** Two-or-more option switch, as in the stats mockup. */
 export function Segmented<T extends string>({
@@ -17,7 +18,7 @@ export function Segmented<T extends string>({
       {options.map((option) => {
         const selected = option.value === value;
         return (
-          <Pressable
+          <PressScale
             key={option.value}
             accessibilityRole="tab"
             accessibilityState={{ selected }}
@@ -26,7 +27,7 @@ export function Segmented<T extends string>({
             <AppText weight="medium" tone={selected ? 'onPrimary' : 'text'} className="text-[15px]">
               {option.label}
             </AppText>
-          </Pressable>
+          </PressScale>
         );
       })}
     </View>

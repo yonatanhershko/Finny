@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { KeyboardAvoidingView, Platform, Pressable, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, View } from 'react-native';
 
 import { useAuth } from '@/auth/AuthProvider';
 import { checkEmail, checkPassword, MIN_PASSWORD_LENGTH } from '@/auth/validation';
@@ -10,6 +10,7 @@ import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { Screen } from '@/components/ui/Screen';
 import { TextField } from '@/components/ui/TextField';
+import { PressScale } from '@/components/ui/PressScale';
 
 /**
  * Forgot password in two steps: email -> code from the email + new password.
@@ -130,14 +131,14 @@ export default function ForgotPasswordScreen() {
           )}
         </View>
 
-        <Pressable
+        <PressScale
           accessibilityRole="link"
           onPress={() => (router.canGoBack() ? router.back() : router.replace('/sign-in'))}
           className="mt-5 min-h-[44px] justify-center">
           <AppText tone="primary" weight="medium" className="text-[15px]">
             {t('auth.forgot.backToSignIn')}
           </AppText>
-        </Pressable>
+        </PressScale>
       </Screen>
     </KeyboardAvoidingView>
   );

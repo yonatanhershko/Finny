@@ -1,9 +1,10 @@
 import { type ReactNode } from 'react';
-import { ActivityIndicator, Pressable, type PressableProps, View } from 'react-native';
+import { ActivityIndicator, type PressableProps, View } from 'react-native';
 
 import { useTheme } from '@/theme/ThemeProvider';
 
 import { AppText } from './AppText';
+import { PressScale } from './PressScale';
 
 const variants = {
   primary: { box: 'bg-primary', tone: 'onPrimary' },
@@ -11,7 +12,7 @@ const variants = {
   outline: { box: 'bg-surface border border-border', tone: 'text' },
 } as const;
 
-export type ButtonProps = Omit<PressableProps, 'children'> & {
+export type ButtonProps = Omit<PressableProps, 'children' | 'style'> & {
   label: string;
   variant?: keyof typeof variants;
   icon?: ReactNode;
@@ -34,7 +35,7 @@ export function Button({
     variant === 'primary' ? colors.onPrimary : variant === 'accent' ? colors.onAccent : colors.text;
 
   return (
-    <Pressable
+    <PressScale
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled: !!disabled || loading, busy: loading }}
@@ -51,6 +52,6 @@ export function Button({
           </AppText>
         </View>
       )}
-    </Pressable>
+    </PressScale>
   );
 }

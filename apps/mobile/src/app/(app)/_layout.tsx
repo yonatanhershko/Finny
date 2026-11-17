@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 
 import { materializeRecurring } from '@/data/queries';
+import { WalletProvider } from '@/data/WalletProvider';
 import { NotificationSetup } from '@/notifications/NotificationSetup';
 import { useTheme } from '@/theme/ThemeProvider';
 
@@ -16,7 +17,9 @@ export default function AppLayout() {
   );
   return (
     <QueryClientProvider client={client}>
-      <AppStack />
+      <WalletProvider>
+        <AppStack />
+      </WalletProvider>
     </QueryClientProvider>
   );
 }

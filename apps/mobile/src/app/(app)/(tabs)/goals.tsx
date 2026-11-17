@@ -1,19 +1,23 @@
 import { parseAmount, percentOf } from '@finny/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 
 import { AmountField } from '@/components/ui/AmountField';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
+import { Confetti } from '@/components/ui/Confetti';
 import { Dialog } from '@/components/ui/Dialog';
 import { Icon } from '@/components/ui/Icon';
+import { PressScale } from '@/components/ui/PressScale';
+import { ProgressFill } from '@/components/ui/ProgressFill';
 import { Screen } from '@/components/ui/Screen';
 import { EmptyState, ErrorState, Loading } from '@/components/ui/States';
 import { TextField } from '@/components/ui/TextField';
 import { useMoney } from '@/data/hooks';
 import { type GoalWithSaved, useDeleteGoal, useDeposit, useGoals, useSaveGoal } from '@/data/queries';
 import { useRowAlign } from '@/i18n';
+import { WalletSwitcher } from '@/components/wallet/WalletSwitcher';
 
 const GOAL_ICONS = ['flag', 'airplane', 'chart-line', 'home', 'car', 'school', 'beach', 'piggy-bank', 'gift', 'laptop'];
 
@@ -33,18 +37,21 @@ export default function GoalsScreen() {
 
   return (
     <Screen leaves="low" scroll className="px-5 pb-8 pt-3">
-      <View className="mb-3 flex-row items-center justify-between">
+      <View className="mb-2 flex-row items-center justify-between">
         <View className="w-11" />
         <AppText weight="bold" className="text-[20px]" accessibilityRole="header">
           {t('goals.title')}
         </AppText>
-        <Pressable
+        <PressScale
           accessibilityRole="button"
           accessibilityLabel={t('goals.add')}
           className="h-11 w-11 items-center justify-center"
           onPress={() => setCreating(true)}>
           <Icon name="plus" size={26} tone="primary" />
-        </Pressable>
+        </PressScale>
+      </View>
+      <View className="mb-3">
+        <WalletSwitcher center />
       </View>
 
       {goals.isLoading ? (
@@ -87,6 +94,13 @@ function GoalCard({ goal, onDeposit, onDelete }: { goal: GoalWithSaved; onDeposi
   const percent = Math.min(100, Math.floor(percentOf(goal.saved, goal.target_amount)));
   const reached = goal.saved >= goal.target_amount;
   const align = useRowAlign();
+  // Confetti only at the moment the goal is reached, not on every visit to the screen.
+  const [wasReached, setWasReached] = useState(reached);
+  const [celebrate, setCelebrate] = useState(false);
+  if (wasReached !== reached) {
+    setWasReached(reached);
+    setCelebrate(reached);
+  }
 
   return (
     <View className="rounded-xl border border-border bg-surface p-4">
@@ -106,7 +120,11 @@ function GoalCard({ goal, onDeposit, onDelete }: { goal: GoalWithSaved; onDeposi
         className="mt-3 h-[8px] overflow-hidden rounded-full bg-surface-muted"
         accessibilityRole="progressbar"
         accessibilityValue={{ min: 0, max: 100, now: percent }}>
-        <View className={`h-full rounded-full ${reached ? 'bg-success' : 'bg-primary'}`} style={{ width: `${percent}%` }} />
+        <ProgressFill ratio={percent / 100} introKey={`goal.${goal.id}`} className={reached ? 'bg-success' : 'bg-primary'} />
+      </View>
+      {/* Zero-height line under the bar: the confetti pops from here, above the rest of the card. */}
+      <View style={{ zIndex: 1 }}>
+        <Confetti play={celebrate} />
       </View>
       <View className={`mt-2 justify-between ${align.row}`}>
         <AppText className="text-[15px]">{t('goals.saved', { amount: money.format(goal.saved) })}</AppText>
@@ -116,7 +134,7 @@ function GoalCard({ goal, onDeposit, onDelete }: { goal: GoalWithSaved; onDeposi
       </View>
 
       <Button label={t('goals.deposit')} onPress={onDeposit} className="mt-3" />
-      <Pressable
+      <PressScale
         accessibilityRole="button"
         accessibilityLabel={t('goals.deleteTitle', { name: goal.name })}
         onPress={onDelete}
@@ -124,7 +142,7 @@ function GoalCard({ goal, onDeposit, onDelete }: { goal: GoalWithSaved; onDeposi
         <AppText tone="muted" className="text-[13px]">
           {t('common.delete')}
         </AppText>
-      </Pressable>
+      </PressScale>
     </View>
   );
 }
@@ -167,7 +185,7 @@ function GoalDialog({ onClose }: { onClose: () => void }) {
       </View>
       <View className="flex-row flex-wrap gap-1">
         {GOAL_ICONS.map((item) => (
-          <Pressable
+          <PressScale
             key={item}
             accessibilityRole="button"
             accessibilityLabel={item}
@@ -177,7 +195,7 @@ function GoalDialog({ onClose }: { onClose: () => void }) {
               item === icon ? 'border-primary bg-surface' : 'border-transparent'
             }`}>
             <Icon name={item} tone={item === icon ? 'primary' : 'muted'} />
-          </Pressable>
+          </PressScale>
         ))}
       </View>
       {error && (

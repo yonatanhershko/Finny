@@ -19,6 +19,21 @@ const googleServicesFile = process.env.GOOGLE_SERVICES_JSON || undefined;
 
 const bundleId = isProd ? 'com.finny.app' : 'com.finny.app.dev';
 
+// Google sign-in client IDs (Google Cloud project finny-f9dba). Not secrets: they ship inside the app.
+// Web client = the one Supabase uses, shared by dev and prod. iOS client: one per bundle ID.
+// Android clients need no ID here (Google matches package + SHA-1). See docs/google-sign-in.md.
+const googleWebClientId =
+  process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ||
+  '542359804466-g6fep91ls990ksosp6r886gqp3ll7v7f.apps.googleusercontent.com';
+const googleIosClientId = isProd
+  ? process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID_PROD
+  : process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID_DEV ||
+    '542359804466-c6gf7j8jmtkcvflmnac3nr644r6ppsaj.apps.googleusercontent.com';
+// iOS needs the reversed client ID as a URL scheme so Google can hand back to the app.
+const googleIosUrlScheme = googleIosClientId
+  ? `com.googleusercontent.apps.${googleIosClientId.replace('.apps.googleusercontent.com', '')}`
+  : undefined;
+
 const config: ExpoConfig = {
   name: isProd ? 'Finny' : 'Finny Dev',
   slug: 'finny',
@@ -56,6 +71,10 @@ const config: ExpoConfig = {
     'expo-secure-store',
     // Push + local notifications. The small Android status-bar icon is the default one for now.
     'expo-notifications',
+    // Native Google sign-in. Android needs no plugin options; iOS only once its client ID is set.
+    ...(googleIosUrlScheme
+      ? [['@react-native-google-signin/google-signin', { iosUrlScheme: googleIosUrlScheme }] as [string, object]]
+      : []),
     ['expo-localization', { supportedLocales: { ios: ['he', 'en'], android: ['he', 'en'] } }],
     [
       'expo-splash-screen',
@@ -73,6 +92,7 @@ const config: ExpoConfig = {
   extra: {
     appVariant: variant,
     supportsRTL: true,
+    googleClientIds: { web: googleWebClientId, ios: googleIosClientId },
     ...(easProjectId ? { eas: { projectId: easProjectId } } : {}),
   },
 };

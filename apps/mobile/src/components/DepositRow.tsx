@@ -1,6 +1,6 @@
 import type { Goal, GoalDeposit } from '@finny/shared';
 import { useTranslation } from 'react-i18next';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 
 import { useDateFormat, useMoney } from '@/data/hooks';
 import { useRowAlign } from '@/i18n';
@@ -8,6 +8,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 
 import { AppText } from './ui/AppText';
 import { CategoryIcon, Icon } from './ui/Icon';
+import { PressScale } from '@/components/ui/PressScale';
 
 /** One goal deposit in history. Not an expense: it is labeled "Savings". Trash deletes just this deposit. */
 export function DepositRow({
@@ -45,13 +46,13 @@ export function DepositRow({
           {money.format(deposit.amount)}
         </AppText>
       </View>
-      <Pressable
+      <PressScale
         accessibilityRole="button"
         accessibilityLabel={`${t('common.delete')}: ${name}`}
         onPress={onDelete}
         className="h-[60px] w-11 items-center justify-center">
         <Icon name="trash-can-outline" size={20} tone="muted" />
-      </Pressable>
+      </PressScale>
     </View>
   );
 }

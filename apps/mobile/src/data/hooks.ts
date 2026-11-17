@@ -6,12 +6,14 @@ import {
   type Period,
   periodFor,
   todayISO,
+  type Wallet,
 } from '@finny/shared';
 import { useTranslation } from 'react-i18next';
 
 import { useLanguage } from '@/i18n';
 
 import { useSettings } from './queries';
+import { useWallet } from './walletContext';
 
 /** Left-to-right mark: keeps "₪ 1,850" in that order inside Hebrew text, on iPhone and Android. */
 const LRM = '\u200E';
@@ -26,10 +28,9 @@ export function useMoney() {
   return { currency, format: (minor: number) => `${LRM}${formatMoney(minor, currency)}${LRM}` };
 }
 
-/** The budget month that contains today, by the user's start day. */
+/** The budget month that contains today, by the current wallet's start day. */
 export function useCurrentPeriod(): { period: Period; startDay: number; today: ISODate } {
-  const { data } = useSettings();
-  const startDay = data?.month_start_day ?? 1;
+  const startDay = useWallet().wallet.month_start_day;
   const today = todayISO();
   return { period: periodFor(today, startDay), startDay, today };
 }
@@ -41,6 +42,16 @@ export function useCategoryName() {
     if (!category) return t('categories.unknown');
     if (category.name) return category.name;
     return t(`categories.defaults.${category.default_key}`, { defaultValue: category.default_key ?? '' });
+  };
+}
+
+/** A wallet's display name: the user's own, or the translated default. */
+export function useWalletName() {
+  const { t } = useTranslation();
+  return (wallet: Pick<Wallet, 'name' | 'default_key'> | undefined): string => {
+    if (!wallet) return '';
+    if (wallet.name) return wallet.name;
+    return t(`wallets.defaults.${wallet.default_key ?? 'personal'}`);
   };
 }
 

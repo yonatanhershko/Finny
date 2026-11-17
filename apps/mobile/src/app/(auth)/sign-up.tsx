@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { KeyboardAvoidingView, Platform, Pressable, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, View } from 'react-native';
 
 import { useAuth } from '@/auth/AuthProvider';
 import { resetTermsRead, useTermsRead } from '@/auth/terms';
@@ -15,6 +15,7 @@ import { Screen } from '@/components/ui/Screen';
 import { TextField } from '@/components/ui/TextField';
 import { useRowAlign } from '@/i18n';
 import { useTheme } from '@/theme/ThemeProvider';
+import { PressScale } from '@/components/ui/PressScale';
 
 const STEPS = ['name', 'email', 'password'] as const;
 
@@ -68,8 +69,9 @@ export default function SignUpScreen() {
 
   const back = () => {
     setError(null);
-    if (stepIndex === 0) router.back();
-    else setStepIndex(stepIndex - 1);
+    if (stepIndex > 0) setStepIndex(stepIndex - 1);
+    else if (router.canGoBack()) router.back();
+    else router.replace('/sign-in');
   };
 
   return (
@@ -102,7 +104,7 @@ export default function SignUpScreen() {
                 { index: 0, icon: 'account-outline', value: name.trim() },
                 ...(stepIndex > 1 ? [{ index: 1, icon: 'email-outline', value: email.trim() }] : []),
               ].map((row) => (
-                <Pressable
+                <PressScale
                   key={row.index}
                   accessibilityRole="button"
                   accessibilityLabel={`${t('common.edit')}: ${row.value}`}
@@ -117,7 +119,7 @@ export default function SignUpScreen() {
                     {row.value}
                   </AppText>
                   <Icon name="pencil-outline" tone="muted" size={18} />
-                </Pressable>
+                </PressScale>
               ))}
             </View>
           )}
@@ -169,7 +171,7 @@ export default function SignUpScreen() {
             />
           )}
           {step === 'email' && (
-            <Pressable
+            <PressScale
               accessibilityRole="button"
               accessibilityLabel={t('terms.openLink')}
               accessibilityState={{ checked: termsRead }}
@@ -188,7 +190,7 @@ export default function SignUpScreen() {
                 className="flex-1 text-[15px]">
                 {termsRead ? t('terms.done') : t('terms.openLink')}
               </AppText>
-            </Pressable>
+            </PressScale>
           )}
           <Button
             label={step === 'password' ? t('auth.createAccount') : t('common.next')}
@@ -199,14 +201,14 @@ export default function SignUpScreen() {
           <Button label={t('common.back')} variant="outline" onPress={back} disabled={busy} />
         </View>
 
-        <Pressable
+        <PressScale
           accessibilityRole="link"
           onPress={() => router.replace('/sign-in')}
           className="mt-5 min-h-[44px] justify-center">
           <AppText tone="primary" weight="medium" className="text-[15px]">
             {t('auth.haveAccount')}
           </AppText>
-        </Pressable>
+        </PressScale>
       </Screen>
     </KeyboardAvoidingView>
   );
