@@ -12,9 +12,13 @@ import type {
   Wallet,
 } from '@finny/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { randomUUID } from 'expo-crypto';
+import { useMemo } from 'react';
 
+import { isOnline, isTransient, OfflineError } from '@/lib/network';
 import { supabase } from '@/lib/supabase';
 
+import { addToTotals, asListed, enqueue, type ListedTransaction, removeQueued, useOutbox } from './outbox';
 import { useWalletId } from './walletContext';
 
 /**
@@ -24,9 +28,15 @@ import { useWalletId } from './walletContext';
  * wallet: every key holds its id, so switching wallets never shows another wallet's rows.
  */
 
-function unwrap<T>(result: { data: T | null; error: { message: string } | null }): T {
-  if (result.error) throw new Error(result.error.message);
+function unwrap<T>(result: { data: T | null; error: { message: string; code?: string } | null; status?: number }): T {
+  if (result.error) throw isTransient(result) ? new OfflineError() : new Error(result.error.message);
   return result.data as T;
+}
+
+/** This wallet's transactions still on the phone (docs/spec.md "Offline"). */
+function useWalletOutbox(wallet: string) {
+  const all = useOutbox();
+  return useMemo(() => all.filter((x) => x.wallet_id === wallet), [all, wallet]);
 }
 
 const keys = {
@@ -244,18 +254,25 @@ export function useRemoveCategory() {
 
 export function useCategoryTotals(period: Period) {
   const wallet = useWalletId();
-  return useQuery({
+  const pending = useWalletOutbox(wallet);
+  const query = useQuery({
     queryKey: keys.totals(wallet, period),
     queryFn: async () =>
       unwrap<CategoryTotal[]>(
         await supabase.rpc('category_totals', { p_wallet_id: wallet, p_from: period.start, p_to: period.end }),
       ),
   });
+  // Not yet sent ones count at once; refused ones do not.
+  const { start, end } = period;
+  const data = useMemo(() => {
+    const extra = pending.filter((x) => x.state === 'queued' && x.date >= start && x.date <= end);
+    return query.data ? addToTotals(query.data, extra) : query.data;
+  }, [query.data, pending, start, end]);
+  return { ...query, data };
 }
 
-export function useTransactions(period: Period | null, categoryId?: string) {
-  const wallet = useWalletId();
-  return useQuery({
+function transactionsQuery(wallet: string, period: Period | null, categoryId?: string) {
+  return {
     queryKey: keys.transactions(wallet, period, categoryId),
     queryFn: async () => {
       let query = supabase.from('transactions').select('*').eq('wallet_id', wallet);
@@ -265,7 +282,42 @@ export function useTransactions(period: Period | null, categoryId?: string) {
         await query.order('date', { ascending: false }).order('created_at', { ascending: false }).limit(2000),
       );
     },
-  });
+  };
+}
+
+/**
+ * Load the wallet's full history in the background while online, so History and
+ * category lists have something to show offline (docs/spec.md "Offline").
+ */
+export function usePrefetchHistory() {
+  const client = useQueryClient();
+  const wallet = useWalletId();
+  return () => client.prefetchQuery(transactionsQuery(wallet, null));
+}
+
+export function useTransactions(period: Period | null, categoryId?: string) {
+  const wallet = useWalletId();
+  const pending = useWalletOutbox(wallet);
+  const query = useQuery(transactionsQuery(wallet, period, categoryId));
+  const start = period?.start;
+  const end = period?.end;
+  // Offline with nothing saved yet the query waits; still show what is on the phone.
+  const waiting = query.fetchStatus === 'paused';
+  const data = useMemo((): ListedTransaction[] | undefined => {
+    if (!query.data && !waiting) return query.data;
+    const server = query.data ?? [];
+    const own = pending.filter(
+      (x) =>
+        (!start || !end || (x.date >= start && x.date <= end)) &&
+        (!categoryId || x.category_id === categoryId) &&
+        !server.some((row) => row.id === x.id),
+    );
+    if (own.length === 0) return query.data;
+    return [...own.map(asListed), ...server].sort((a, b) =>
+      a.date === b.date ? b.created_at.localeCompare(a.created_at) : b.date.localeCompare(a.date),
+    );
+  }, [query.data, waiting, pending, start, end, categoryId]);
+  return { ...query, data };
 }
 
 export function useTransaction(id: string | undefined) {
@@ -294,9 +346,12 @@ export type TransactionInput = {
 
 export function useAddTransaction() {
   const invalidate = useInvalidateMoney();
+  const wallet = useWalletId();
   return useMutation({
-    mutationFn: async (input: TransactionInput) => {
+    /** 'queued' = no internet: kept on the phone and sent later. */
+    mutationFn: async (input: TransactionInput): Promise<'saved' | 'queued'> => {
       const description = input.description.trim();
+      if (input.repeat.kind !== 'none' && !(await isOnline())) throw new OfflineError();
       if (input.repeat.kind === 'recurring') {
         unwrap(
           await supabase.rpc('create_recurring', {
@@ -320,21 +375,30 @@ export function useAddTransaction() {
           }),
         );
       } else {
-        unwrap(
-          await supabase
-            .from('transactions')
-            .insert({
-              type: input.type,
-              amount: input.amount,
-              description,
-              date: input.date,
-              category_id: input.category_id,
-            })
-            .select(),
-        );
+        // The id is made here, so a send that is repeated later never makes a second row.
+        const row = {
+          id: randomUUID(),
+          wallet_id: wallet,
+          type: input.type,
+          amount: input.amount,
+          description,
+          date: input.date,
+          category_id: input.category_id,
+        };
+        if (!(await isOnline())) {
+          enqueue(row);
+          return 'queued';
+        }
+        const result = await supabase.from('transactions').insert(row).select();
+        if (result.error && isTransient(result)) {
+          enqueue(row);
+          return 'queued';
+        }
+        unwrap(result);
       }
+      return 'saved';
     },
-    onSuccess: invalidate,
+    onSuccess: (outcome) => (outcome === 'saved' ? invalidate() : undefined),
   });
 }
 
@@ -364,10 +428,12 @@ export function useUpdateTransaction() {
 export function useDeleteTransaction() {
   const invalidate = useInvalidateMoney();
   return useMutation({
-    mutationFn: async (id: string) => {
-      unwrap(await supabase.from('transactions').delete().eq('id', id).select());
+    mutationFn: async (tx: Pick<ListedTransaction, 'id' | 'sync'>) => {
+      // Still on the phone: the server never had it.
+      if (tx.sync) return removeQueued(tx.id);
+      unwrap(await supabase.from('transactions').delete().eq('id', tx.id).select());
+      await invalidate();
     },
-    onSuccess: invalidate,
   });
 }
 
@@ -412,7 +478,9 @@ export function useGoalDepositsInPeriod(period: Period) {
   return useQuery({
     // Under the 'goals' key so a new deposit refreshes it.
     queryKey: [...keys.walletGoals(wallet), 'deposits', period.start, period.end] as const,
-    queryFn: async (): Promise<Map<string, number>> => {
+    // Kept as a plain object: the cache is saved on the phone as JSON, which drops a Map.
+    select: (sums: Record<string, number>) => new Map(Object.entries(sums)),
+    queryFn: async (): Promise<Record<string, number>> => {
       const rows = unwrap<Pick<GoalDeposit, 'goal_id' | 'amount'>[]>(
         await supabase
           .from('goal_deposits')
@@ -422,8 +490,8 @@ export function useGoalDepositsInPeriod(period: Period) {
           .lte('date', period.end)
           .limit(2000),
       );
-      const sums = new Map<string, number>();
-      for (const r of rows) sums.set(r.goal_id, (sums.get(r.goal_id) ?? 0) + r.amount);
+      const sums: Record<string, number> = {};
+      for (const r of rows) sums[r.goal_id] = (sums[r.goal_id] ?? 0) + r.amount;
       return sums;
     },
   });

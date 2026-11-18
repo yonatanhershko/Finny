@@ -1,4 +1,4 @@
-import type { GoalDeposit, Transaction } from '@finny/shared';
+import type { GoalDeposit } from '@finny/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
@@ -13,6 +13,7 @@ import { Dialog } from '@/components/ui/Dialog';
 import { Screen } from '@/components/ui/Screen';
 import { EmptyState, ErrorState, Loading } from '@/components/ui/States';
 import { useCategoryName } from '@/data/hooks';
+import type { ListedTransaction } from '@/data/outbox';
 import { useAllDeposits, useCategories, useDeleteDeposit, useGoals, useTransactions } from '@/data/queries';
 import { buildCsv, shareCsv } from '@/lib/export';
 
@@ -26,7 +27,7 @@ export default function HistoryScreen() {
   const goals = useGoals();
   const removeDeposit = useDeleteDeposit();
   const [deletingDeposit, setDeletingDeposit] = useState<GoalDeposit | null>(null);
-  const [deleting, setDeleting] = useState<Transaction | null>(null);
+  const [deleting, setDeleting] = useState<ListedTransaction | null>(null);
   const [exporting, setExporting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -44,7 +45,8 @@ export default function HistoryScreen() {
     setMessage(null);
     try {
       const csv = buildCsv(
-        transactions.data ?? [],
+        // Ones the server refused are not part of the books.
+        (transactions.data ?? []).filter((tx) => tx.sync !== 'rejected'),
         deposits.data ?? [],
         (id) => nameOf(byId.get(id)),
         (id) => goalById.get(id)?.name ?? t('goals.savings'),
@@ -96,7 +98,8 @@ export default function HistoryScreen() {
             }}
           />
         ) : entries.length === 0 ? (
-          <EmptyState text={t('transactions.empty')} />
+          // Offline and never loaded on this phone, or really empty.
+          <EmptyState text={t(transactions.data ? 'transactions.empty' : 'offline.notLoaded')} />
         ) : (
           <View className="gap-2">
             {entries.map((entry) =>

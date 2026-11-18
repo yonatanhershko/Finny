@@ -20,7 +20,8 @@ export function TextField({ label, error, secureTextEntry, ...props }: TextField
   const { colors } = useTheme();
   const { t } = useTranslation();
   // Typed text follows the language: Hebrew starts at the right, English at the left.
-  const direction = useRowAlign().text;
+  const align = useRowAlign();
+  const direction = align.text;
   const [revealed, setRevealed] = useState(false);
   const borderClass = error ? 'border-danger' : 'border-border';
 
@@ -30,8 +31,9 @@ export function TextField({ label, error, secureTextEntry, ...props }: TextField
         {label}
       </AppText>
       {secureTextEntry ? (
+        // The eye sits on the side where typing does not start: Hebrew left, English right.
         <View
-          className={`min-h-[52px] flex-row items-center rounded-lg border bg-surface ps-4 ${borderClass}`}>
+          className={`min-h-[52px] items-center rounded-lg border bg-surface ${align.row} ${align.he ? 'pr-4' : 'pl-4'} ${borderClass}`}>
           <TextInput
             accessibilityLabel={label}
             placeholderTextColor={colors.textMuted}

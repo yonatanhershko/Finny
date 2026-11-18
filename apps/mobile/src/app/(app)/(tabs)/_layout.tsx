@@ -5,7 +5,7 @@ import { PanResponder, View } from "react-native";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Icon } from "@/components/ui/Icon";
+import { FinnyTabBar } from "@/components/ui/FinnyTabBar";
 import {
   TAB_BAR_CONTENT_HEIGHT,
   TabBarHeightContext,
@@ -13,7 +13,7 @@ import {
 import { useTheme } from "@/theme/ThemeProvider";
 
 const tabs = [
-  { name: "today", label: "tabs.today", icon: "home-variant" },
+  { name: "today", label: "tabs.today", icon: "home-outline" },
   { name: "stats", label: "tabs.stats", icon: "chart-donut" },
   { name: "goals", label: "tabs.goals", icon: "bullseye-arrow" },
   { name: "more", label: "tabs.more", icon: "dots-horizontal" },
@@ -52,6 +52,8 @@ function useTabSwipe() {
   return responder.panHandlers;
 }
 
+const tabIcons = Object.fromEntries(tabs.map((tab) => [tab.name, tab.icon]));
+
 export default function TabsLayout() {
   const swipe = useTabSwipe();
   const { t } = useTranslation();
@@ -61,20 +63,12 @@ export default function TabsLayout() {
     <TabBarHeightContext value={barHeight}>
       <View style={{ flex: 1 }} {...swipe}>
         <Tabs
+          tabBar={(props) => <FinnyTabBar {...props} icons={tabIcons} />}
           screenOptions={{
             headerShown: false,
             // Soft cross-fade when moving between tabs.
             animation: "fade",
-            tabBarActiveTintColor: colors.primary,
-            tabBarInactiveTintColor: colors.textMuted,
-            // Absolute: screens (and their leaves) run under the bar.
-            tabBarStyle: {
-              position: "absolute",
-              height: barHeight,
-              backgroundColor: colors.surface,
-              borderTopColor: colors.border,
-            },
-            tabBarLabelStyle: { fontFamily: "Rubik_500Medium", fontSize: 12 },
+            // The bar is absolute (FinnyTabBar): screens and their leaves run under it.
             sceneStyle: { backgroundColor: colors.background },
           }}
         >
@@ -82,12 +76,7 @@ export default function TabsLayout() {
             <Tabs.Screen
               key={tab.name}
               name={tab.name}
-              options={{
-                title: t(tab.label),
-                tabBarIcon: ({ color, size }) => (
-                  <Icon name={tab.icon} size={size} color={String(color)} />
-                ),
-              }}
+              options={{ title: t(tab.label) }}
             />
           ))}
         </Tabs>

@@ -1,9 +1,12 @@
 import { hasAccess, type Profile } from '@finny/shared';
-import type { Session } from '@supabase/supabase-js';
+import { isAuthRetryableFetchError, type Session } from '@supabase/supabase-js';
 import { createContext, type ReactNode, use, useCallback, useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 
-import { supabase } from '@/lib/supabase';
+import { clearOfflineData, loadProfile as loadSavedProfile, saveProfile } from '@/lib/offlineCache';
+import { secureStorage } from '@/lib/secure-storage';
+import { AUTH_STORAGE_KEY, supabase } from '@/lib/supabase';
+import { resetOutbox } from '@/data/outbox';
 import { clearNotificationsOnSignOut } from '@/notifications';
 
 import { signInWithGoogle, signOutGoogle } from './google';
@@ -51,6 +54,31 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+/**
+ * Reads the profile. Offline, the last one read is used (docs/spec.md "Offline"),
+ * so a failed read never locks a user out just for having no signal.
+ */
+async function readProfile(id: string): Promise<{ data: Profile | null; failed: boolean }> {
+  const { data, error } = await supabase.from('profiles').select('*').eq('id', id).maybeSingle();
+  if (!error) {
+    if (data) void saveProfile(data);
+    return { data, failed: false };
+  }
+  const saved = await loadSavedProfile(id);
+  return { data: saved, failed: !saved };
+}
+
+/** The session as last stored on the phone, read without the network. */
+async function storedSession(): Promise<Session | null> {
+  try {
+    const raw = await secureStorage.getItem(AUTH_STORAGE_KEY);
+    const parsed = raw ? (JSON.parse(raw) as Session) : null;
+    return parsed?.access_token && parsed.user ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 function toErrorCode(error: { code?: string; status?: number; message?: string }): AuthErrorCode {
   // Dev only: show why Supabase refused, so a vague message in the UI is never a mystery.
   // Never logs the password or the email.
@@ -91,12 +119,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const userId = session?.user.id ?? null;
 
   useEffect(() => {
-    void supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    void supabase.auth.getSession().then(async ({ data, error }) => {
+      // Offline with an expired access token the refresh fails, but the session is
+      // still stored and refreshes once the internet is back. Keep the user in.
+      const offline = !data.session && error && isAuthRetryableFetchError(error);
+      setSession(offline ? await storedSession() : data.session);
       setSessionLoaded(true);
     });
     // Keep this callback synchronous: calling Supabase inside it can deadlock.
-    const { data } = supabase.auth.onAuthStateChange((_event, next) => setSession(next));
+    // The first state comes from getSession above, which also covers offline starts.
+    const { data } = supabase.auth.onAuthStateChange((event, next) => {
+      if (event !== 'INITIAL_SESSION') setSession(next);
+    });
     return () => data.subscription.unsubscribe();
   }, []);
 
@@ -106,10 +140,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfileLoadedFor(id);
   }, []);
 
-  const loadProfile = useCallback(
+  const fetchProfile = useCallback(
     async (id: string) => {
-      const { data, error } = await supabase.from('profiles').select('*').eq('id', id).maybeSingle();
-      applyProfile(id, data, !!error);
+      const { data, failed } = await readProfile(id);
+      applyProfile(id, data, failed);
     },
     [applyProfile],
   );
@@ -117,14 +151,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!userId) return;
     let alive = true;
-    supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle()
-      .then(({ data, error }) => {
-        if (alive) applyProfile(userId, data, !!error);
-      });
+    void readProfile(userId).then(({ data, failed }) => {
+      if (alive) applyProfile(userId, data, failed);
+    });
     return () => {
       alive = false;
     };
@@ -134,10 +163,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!userId) return;
     const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') void loadProfile(userId);
+      if (state === 'active') void fetchProfile(userId);
     });
     return () => sub.remove();
-  }, [userId, loadProfile]);
+  }, [userId, fetchProfile]);
 
   const signedInProfile = userId && profileLoadedFor === userId ? profile : null;
 
@@ -200,11 +229,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signOut: async () => {
       // While still signed in: this device stops getting the user's reminders.
       await clearNotificationsOnSignOut();
-      await supabase.auth.signOut();
+      // Offline data of this user (cache, unsent queue, last profile) leaves with them.
+      if (userId) {
+        resetOutbox();
+        await clearOfflineData(userId);
+      }
+      // Offline the server call fails and the session would stay: then sign out on this phone only.
+      const { error } = await supabase.auth.signOut();
+      if (error) await supabase.auth.signOut({ scope: 'local' });
       await signOutGoogle();
     },
     refreshProfile: async () => {
-      if (userId) await loadProfile(userId);
+      if (userId) await fetchProfile(userId);
     },
   };
 

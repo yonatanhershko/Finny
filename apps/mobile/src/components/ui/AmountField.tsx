@@ -36,7 +36,6 @@ export function AmountField({
   const fontSize = large ? (value.length <= 6 ? 34 : value.length <= 8 ? 29 : 25) : 18;
   const signSize = large ? Math.round(fontSize * 0.88) : 18;
   return (
-    // The whole box is the tap target: a tap anywhere in it focuses the input.
     <Pressable
       accessible={false}
       onPress={() => input.current?.focus()}

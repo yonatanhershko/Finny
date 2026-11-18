@@ -420,6 +420,19 @@
     "inWallet": "In wallet: {{name}}",
     "settingsOf": "Settings of wallet \"{{name}}\""
   },
+  "offline": {
+    "notLoaded": "Not loaded on this phone yet. Connect to the internet to see it.",
+    "bar": "No connection. What you add is saved and sent later.",
+    "notSynced": "Not synced",
+    "rejected": "Pending: the server did not accept it",
+    "rejectedLine_one": "1 transaction was not saved. Review",
+    "rejectedLine_other": "{{count}} transactions were not saved. Review",
+    "needsInternet": "This needs an internet connection.",
+    "repeatNeedsInternet": "Repeats and installments need an internet connection. A one-time income or expense can be added offline.",
+    "signOutAnyway": "Sign out anyway",
+    "signOutWarning_one": "1 transaction was added offline and not sent yet. Signing out deletes it.",
+    "signOutWarning_other": "{{count}} transactions were added offline and not sent yet. Signing out deletes them."
+  },
   "about": {
     "title": "About",
     "appName": "Finny",

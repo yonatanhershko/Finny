@@ -100,10 +100,12 @@ Decided by the owner 2026-11-17. Layout and details chosen by Claude from the ap
 - Stats: monthly / yearly, expense / income, previous / next period, donut with total in the center, legend with percent and sum, change versus the previous period.
 - Goals: cards with target, saved, progress bar, deposit button.
 - More: account, language, theme, currency, wallets, budget month start and overall budget (of the current wallet), notifications, history + Excel export, delete account, sign out, About (last row).
+- Home cards intro (owner 2026-11-18): the first time home shows after the app launches, its cards (expense categories, then savings, then income, top to bottom) appear one after another: each fades in and rises 12 px over 0.45 s, the next starts 0.1 s later, all done within 1 s (the gap shrinks when there are many). Not again on tab or wallet switch, refresh or a new transaction. With "reduce motion" they show at once. No effect on any amount.
+- Bottom tabs (owner 2026-11-18): icons only, no labels; a soft pill slides to the chosen tab.
 - Login and every register step: wallet illustration with moving 3D leaves. Many leaves across the app.
 - Reminders: see "Notifications". The daily "log your spending" reminder is dropped (owner 2026-11-15).
 - Delete account: hard delete of all data and the auth user, after confirmation.
-- Online only in v1.
+- Works without internet in part: see "Offline".
 
 ## About and app review
 
@@ -117,6 +119,20 @@ Decided by the owner 2026-11-17. No effect on any amount, budget or stat.
   - Only if: at least 7 days since this user first opened the app on this phone, and at least 10 transactions saved on this phone.
   - At most once every 120 days (our own limit; Apple and Google add their own limits and may still show nothing).
   - Never on first launch, mid-task or after an error. Counters are kept on the phone per user.
+
+## Offline
+
+Decided by the owner 2026-11-18.
+
+- **Fast start:** the last data seen (wallets, categories, totals, transactions, goals, settings) is kept on the phone per user, at most 7 days old. The app opens with it at once and refreshes in the background when online. Signing out or deleting the account clears it.
+- **Access offline:** the last subscription status read from the server is kept on the phone. Offline, the app opens if that status still gives access (expiry date not passed). Display only: the server (RLS) decides every read and write.
+- **Add offline:** only a plain income or expense (no repeat, no installments). It is saved on the phone in a queue, with the wallet that was open when it was added, and sent when the internet is back. Each one gets its id on the phone, so sending twice never makes two rows.
+- **Counted at once:** a queued transaction counts in its own wallet's totals, budgets, stats and lists right away, with a small "not synced" tag. Once the server has it, the tag goes.
+- **Rejected by the server** (for example the subscription expired meanwhile, or the wallet was deleted): it is marked "pending", no longer counted, and the user chooses Retry or Delete. Home shows a line while any are pending.
+- **Queued can be deleted** on the phone before it is sent. It cannot be edited until it is sent.
+- **Needs internet:** editing or deleting a synced transaction, repeats, installments, goals and deposits, categories, wallets, settings, a wallet's export from More → Wallets. Offline, adding, editing and deleting a transaction say "needs internet"; the other actions show their usual error under the offline bar. History export works offline with what is on the phone (refused ones left out).
+- **Offline bar:** a thin bar at the top while there is no connection.
+- **Sign out with a queue:** warns "N transactions were not sent and will be lost". Deleting the app loses the queue with no warning.
 
 ## Notifications
 

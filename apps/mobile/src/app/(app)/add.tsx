@@ -19,6 +19,7 @@ import { useWallet } from '@/data/walletContext';
 import { useAuth } from '@/auth/AuthProvider';
 import { useRowAlign } from '@/i18n';
 import { useKeyboardVisible } from '@/lib/keyboard';
+import { OfflineError } from '@/lib/network';
 import { noteTransactionSaved } from '@/lib/review';
 import {
   type Repeat,
@@ -114,12 +115,21 @@ export default function AddTransactionSheet() {
             : repeat === 'installments'
               ? { kind: 'installments', count: installments }
               : { kind: 'recurring', frequency: repeat };
-        await add.mutateAsync({ type, amount: minor, description, date, category_id: categoryId, repeat: repeatInput });
-        if (userId) void noteTransactionSaved(userId);
+        const outcome = await add.mutateAsync({
+          type,
+          amount: minor,
+          description,
+          date,
+          category_id: categoryId,
+          repeat: repeatInput,
+        });
+        // Offline adds count once the server has them, not on the phone.
+        if (userId && outcome === 'saved') void noteTransactionSaved(userId);
       }
       closeSheet();
-    } catch {
-      fail(t('common.errorGeneric'));
+    } catch (e) {
+      // Offline only a plain income or expense can be added (docs/spec.md "Offline").
+      fail(t(e instanceof OfflineError ? (isEdit ? 'offline.needsInternet' : 'offline.repeatNeedsInternet') : 'common.errorGeneric'));
     }
   };
 
