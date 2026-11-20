@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Application from 'expo-application';
+import { nativeApplicationVersion, nativeBuildVersion } from '@/lib/nativeApp';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { Linking, Platform } from 'react-native';
 import * as StoreReview from 'expo-store-review';
@@ -83,8 +83,8 @@ export function openWriteReview() {
 
 /** "1.0.0 (12)". In Expo Go the build number belongs to Expo Go, so it is left out. */
 export function appVersionLabel(): string {
-  const version = Constants.expoConfig?.version ?? Application.nativeApplicationVersion ?? '';
+  const version = Constants.expoConfig?.version ?? nativeApplicationVersion ?? '';
   const inExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
-  const build = inExpoGo ? null : Application.nativeBuildVersion;
+  const build = inExpoGo ? null : nativeBuildVersion;
   return build ? `${version} (${build})` : version;
 }

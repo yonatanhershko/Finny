@@ -24,8 +24,8 @@ const SWIPE_DISTANCE = 60;
 const SWIPE_SPEED = 0.5;
 
 /**
- * Swipe sideways to switch tabs: swipe left goes to the tab on your left, swipe
- * right to the tab on your right (owner request). Vertical scrolling and taps are
+ * Swipe sideways to switch tabs: swipe left opens the tab on your right, swipe
+ * right the tab on your left (owner 2026-11-19). Vertical scrolling and taps are
  * untouched: the gesture only starts once the finger has moved clearly sideways.
  */
 function useTabSwipe() {
@@ -43,7 +43,8 @@ function useTabSwipe() {
           if (index < 0) return;
           if (Math.abs(g.dx) < SWIPE_DISTANCE && Math.abs(g.vx) < SWIPE_SPEED)
             return;
-          const target = tabs[index + (g.dx < 0 ? -1 : 1)];
+          // Like turning pages: finger moves left, the next tab (on the right) comes in.
+          const target = tabs[index + (g.dx < 0 ? 1 : -1)];
           if (target) router.navigate(`/${target.name}`);
         },
       }),

@@ -14,7 +14,7 @@ const kpis = [
   { key: "expiring_soon", label: "Expiring in 30 days" },
 ] as const;
 
-export default function DashboardPage() {
+export function DashboardPage() {
   const stats = useAsync(fetchStats, "stats");
   const pending = useAsync(
     () => fetchProfiles({ statuses: ["pending_approval"], pageSize: 5 }),

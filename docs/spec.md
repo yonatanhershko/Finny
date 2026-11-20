@@ -7,7 +7,7 @@ Decided by the owner on 2026-11-13. Lines marked **(assumed)** were proposed by 
 - Mobile app (Expo, iOS + Android) for tracking income, expenses, budgets, goals. Admin web dashboard (Next.js on Vercel free tier). One Supabase database per environment.
 - Dev environment first. Prod gets a clean, separate Supabase project later.
 - Languages: Hebrew and English. Phone language decides at first launch: Hebrew phone → Hebrew, any other language → English (changed by the owner 2026-11-14). User can switch in More.
-- Layout direction: the screen layout is the same on iPhone, Android and web and never mirrors (tab bar, header, button pairs keep their left-to-right places). Language only changes (1) where text starts: Hebrew text sits at the right, English at the left, centered text stays centered, and text that is only a number (amount, date, time, phone) is always at the left and reads left to right, also in Hebrew; the currency sign is left of the number, and (2) the order inside rows of icon + text (Hebrew: icon at the right). No app reload when the language changes. **(owner request 2026-11-15)**
+- Layout direction: the screen layout is the same on iPhone, Android and web and never mirrors (tab bar, header, button pairs keep their left-to-right places). Language only changes (1) where text starts: Hebrew text sits at the right, English at the left, centered text stays centered, and text that is only a number (amount, date, time, phone) is always at the left and reads left to right, also in Hebrew; the currency sign is left of the number. Number inputs (amount, budget, deposit, month start day, counts) start at the right in Hebrew and at the left in English, digits still left to right, sign still left of the number **(owner 2026-11-18)**. Typed text moves the cursor with it (owner 2026-11-19): email, password and code fields always start at the left; other text fields start by the first letter typed (Hebrew right, English left), empty fields by the app language. The password eye sits at the right.; and (2) the order inside rows of icon + text (Hebrew: icon at the right). No app reload when the language changes. **(owner request 2026-11-15)**
 - Themes: light and dark, tokens in `.claude/rules/design.md`.
 
 ## Build order
@@ -38,7 +38,9 @@ Init → Phase 1 infra → Phase 5 tokens / theme / i18n / leaf art → Phase 2 
 - Email + password first. No email confirmation (no email-sending cost).
 - No welcome screen (owner 2026-11-16): a signed-out user lands straight on sign-in. Sign-up is reached from the link under it; its back button returns to sign-in.
 - Sign-up has three steps: name, email, password. Earlier steps show as rows with a pencil, so the user can jump back and change the name or email. Under the email field is a "Terms of use" tab: tap it, press "I agree" (pinned at the bottom, no need to scroll to the end), and the tab turns green. Continue stays locked until then. No checkbox. The accepted version and time are saved on the auth user (`terms_version`, `terms_accepted_at`). (owner 2026-11-14, no-scroll 2026-11-15)
-- Terms of use: Hebrew + English text in the app i18n files, version `2026-11-15b`, approved by the owner 2026-11-15. Bump `TERMS_VERSION` when the text changes. Operator shown as the owner's private name until a business is registered. Contact: email only. Subscription length is not fixed in the terms: price and length are given to the user before payment (WhatsApp / phone / email, not shown in the app); the operator may grant free or non-expiring access (vip / family).
+- Sign-up step bar (owner 2026-11-20): three short bars; done steps are green. In Hebrew the first bar is at the right and they fill leftward; in English they fill from the left.
+- Loading screen (owner 2026-11-20): background follows the user's saved light/dark choice, or the phone's setting when it is "system" or not read yet. The native splash before it can only follow the phone's setting (light and dark versions).
+- Terms of use: Hebrew + English text in the app i18n files, version `2026-11-18` (usage-data line added 2026-11-18; earlier text approved by the owner 2026-11-15). Bump `TERMS_VERSION` when the text changes. Operator shown as the owner's private name until a business is registered. Contact: email only. Subscription length is not fixed in the terms: price and length are given to the user before payment (WhatsApp / phone / email, not shown in the app); the operator may grant free or non-expiring access (vip / family).
 - Forgot password: from sign-in. Email → 6-digit code sent by email → code + new password. No OTP at sign-up (the admin approval is the gate; clients are personal, a few per month). Needs custom SMTP and a code template, see `docs/prod-setup.md`. (owner 2026-11-14)
 - Google sign-in (owner 2026-11-16): one "Continue with Google" button on the sign-in screen, under the password form; it signs in an existing user or creates a new one. On the phone it uses Google's native sign-in sheet (shows "Finny", not the Supabase address) and Supabase checks the ID token; web and Expo Go fall back to Supabase hosted Google OAuth in the browser, back to `<scheme>://auth-callback`. One Google OAuth web client serves dev and prod (owner 2026-11-17). Name comes from Google. A new Google user never saw the sign-up terms tab, so the first sign-in opens the terms screen: "I agree" saves `terms_version` / `terms_accepted_at`, the other choice signs out. Then the usual locked screen until an admin approves. (terms gate and button placement chosen by Claude) Setup steps: `docs/google-sign-in.md`.
 - Facebook sign-in: later, when the owner has the developer account.
@@ -70,7 +72,7 @@ Init → Phase 1 infra → Phase 5 tokens / theme / i18n / leaf art → Phase 2 
 - Excel (CSV) export contains the deposits too: type "Savings", category column = goal name, same positive amount. Balance = income − savings − expenses, so savings come off the total. **(owner request 2026-11-15)**
 - Deleting a goal: the user chooses in the dialog. Default "Delete goal, keep history": the goal disappears from the Goals tab, but its deposits stay in history, stats, balance and export (the goal is archived). Second choice "Delete goal and its deposits": everything is erased and the money returns to the balance. The owner left the choice to Claude; keep-history is the default because the money really was set aside. **(Claude's choice, confirm or change)**
 - Swipe sideways (from the screen edge) goes back on every screen opened from another screen, on iOS and Android. **(owner request 2026-11-15)**
-- Swipe between the main tabs: swipe left opens the tab on your left, swipe right the tab on your right (Today, Stats, Goals, More, left to right). Nothing happens at the first and last tab. **(owner request 2026-11-15)**
+- Swipe between the main tabs: swipe left opens the tab on your right, swipe right the tab on your left, like turning pages (Today, Stats, Goals, More, left to right). Nothing happens at the first and last tab. **(owner request 2026-11-15, direction flipped 2026-11-19)**
 - Not in v1: accounts (cash / card), transfers, tags, receipt photos. Wallets (separate books) are in, see "Wallets".
 
 ## Wallets
@@ -159,9 +161,46 @@ Decided by the owner 2026-11-15. No effect on any amount, budget or stat.
   - The dialog shows who will get it (users, registered devices) before sending and "sent to N devices" after. A user with no registered device gets nothing, and the dialog says so.
   - Admins only, enforced in the database. No audit log of manual sends.
 
+## Analytics (owner 2026-11-18)
+
+Product analytics: growth, use and engagement. Never the users' money: no amounts, categories or wallets.
+
+- Stored in our own Supabase (table of events), no third-party analytics SDK.
+- Events (all others are computed from these):
+  - `first_open`: first launch on a device. Carries a random device id made on the phone (no user yet).
+  - `signup_started`: "Continue" pressed on the name step of sign-up.
+  - `signup_completed`: account created; method `email` | `google`.
+  - `first_app_entry`: first time the user reaches home with access (after admin approval).
+  - `app_open`: the app comes to the front while signed in, at most once per 30 minutes.
+  - "Approved" is read from `profiles.approved_at`, no event.
+- Each event keeps: name, time, user id or device id, platform, app version. Nothing else: no IP, device model, location.
+- Funnel: first open → sign-up started → sign-up completed → approved → first app entry.
+- Active user on a day: has an `app_open` that day and has access. Locked users (pending, expired, rejected) are not active. DAU / WAU / MAU = distinct active users in the day / last 7 / last 30 days.
+- New vs returning on a day: new = first app entry that day; returning = active that day with first entry on an earlier day.
+- Platform (owner 2026-11-18): active users and first opens are split iPhone / Android. A user seen on both in the range counts once, by the device of their last app open. The CSV has `dau_ios` and `dau_android` per day.
+- "Signed up but did not start": approved, and no transaction added in the 7 days after first app entry (only "any transaction exists", never amounts).
+- Retention D1 / D7 / D30: cohort = day of first app entry; Dn = share of the cohort with an `app_open` exactly n days later. Always shown with the count ("3 of 8").
+- Days are Israel time (Asia/Jerusalem).
+- Admins and dev test users are not counted anywhere.
+- Account deletion deletes the user's events. Daily totals (numbers only, no user ids) are kept forever, so past charts do not change.
+- Raw events are kept 25 months, then deleted by the daily job.
+- No opt-out switch and no tracking prompt (first-party, no cross-app tracking). The terms get one line: we count app use, not your money (bump `TERMS_VERSION`).
+- Offline: events wait in a small queue on the phone and are sent when back online; an event older than 7 days is dropped.
+- Sending: one database function `track_event`, accepts only the names above, rate-limited. Clients cannot read events; only admins, through functions.
+- App downloads are not counted here (App Store Connect / Play Console). `first_open` stands in.
+- Admin page "Analytics":
+  - Range: last 7 / 30 / 90 days, a chosen month, or a chosen year.
+  - Cards: DAU, WAU, MAU, DAU/MAU for today.
+  - Line chart: DAU over the range. Stacked bars: new vs returning.
+  - Funnel: horizontal bars with the drop between steps.
+  - Platform: active users and first opens, iPhone vs Android.
+  - Retention table by weekly cohorts.
+  - Download: CSV of the daily numbers for the chosen range (counts only, no user ids).
+  - Charts with Recharts.
+
 ## Admin web
 
-- English, desktop first, layout as in the owner's mockup. Admins only.
+- English, admins only, layout as in the owner's mockup. Works on phone and desktop (owner 2026-11-18): the menu folds into a top button, tables turn into cards on narrow screens, Analytics cards go 2×2 with full-width charts and a sideways-scrolling retention table.
 - KPIs: total users, active subscribers, pending approvals, expiring soon.
 - Pending approvals: approve (pick plan: paid / vip / family, and length: 1 year / 2 months) or reject.
 - Users: extend access (1 year / 2 months), change plan, see status and expiry.

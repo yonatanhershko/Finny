@@ -11,6 +11,7 @@ const nav = [
   { href: "/", label: "Dashboard" },
   { href: "/approvals", label: "Pending approvals" },
   { href: "/users", label: "Users" },
+  { href: "/analytics", label: "Analytics" },
 ] as const;
 
 function Logo() {

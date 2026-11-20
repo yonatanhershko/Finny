@@ -82,6 +82,8 @@ const config: ExpoConfig = {
         backgroundColor: '#F5F1E8',
         image: './assets/images/splash-icon.png',
         imageWidth: 160,
+        // The native splash can only follow the phone's setting; the moving one after it follows the app's.
+        dark: { backgroundColor: '#16211C', image: './assets/images/splash-icon.png' },
       },
     ],
   ],

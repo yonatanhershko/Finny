@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 
 /** Bump when the terms text changes; stored with each sign-up. */
-export const TERMS_VERSION = '2026-11-17';
+export const TERMS_VERSION = '2026-11-18';
 
 /**
  * "Opened and read the terms" for the sign-up in progress. Lives in memory

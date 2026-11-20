@@ -1,6 +1,6 @@
 import { UserListPage } from "@/components/UserListPage";
 
-export default function UsersPage() {
+export function UsersPage() {
   return (
     <UserListPage
       title="Users"

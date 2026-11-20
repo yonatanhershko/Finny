@@ -9,7 +9,7 @@ import { fetchStats } from "@/lib/admin-api";
 import { useAsync } from "@/lib/use-async";
 
 /** Admin area. Only an admin gets past here; the database enforces it as well. */
-export default function AdminLayout({ children }: { children: ReactNode }) {
+export function AdminGate({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { state } = useAdminAuth();
 

@@ -1,7 +1,6 @@
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
 import { QueryClient, useQueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
-import * as Application from 'expo-application';
 import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { AppState } from 'react-native';
@@ -12,7 +11,9 @@ import { flushOutbox, openOutbox } from '@/data/outbox';
 import { materializeRecurring, usePrefetchHistory } from '@/data/queries';
 import { useWalletId } from '@/data/walletContext';
 import { WalletProvider } from '@/data/WalletProvider';
+import { flushAnalytics, trackAppEntry, trackAppOpen } from '@/lib/analytics';
 import { onReconnect } from '@/lib/network';
+import { nativeApplicationVersion } from '@/lib/nativeApp';
 import { allowCache, cacheKey, cacheStorage } from '@/lib/offlineCache';
 import { markFirstOpen } from '@/lib/review';
 import { NotificationSetup } from '@/notifications/NotificationSetup';
@@ -49,11 +50,12 @@ export default function AppLayout() {
         persister,
         maxAge: WEEK_MS,
         // A new app version starts with a fresh cache, in case the data shape changed.
-        buster: Application.nativeApplicationVersion ?? '',
+        buster: nativeApplicationVersion ?? '',
         dehydrateOptions: { shouldDehydrateQuery: (q) => q.state.status === 'success' },
       }}>
       <WalletProvider>
         <OutboxSync userId={userId} />
+        <AnalyticsTracker userId={userId} />
         <OfflineBar>
           <AppStack />
         </OfflineBar>
@@ -84,6 +86,26 @@ function OutboxSync({ userId }: { userId: string }) {
       clearInterval(timer);
     };
   }, [client, userId]);
+  return null;
+}
+
+/**
+ * Product analytics (docs/spec.md "Analytics"): first entry and app opens of a user with access.
+ * Everything in this group needs access, so being here is enough.
+ */
+function AnalyticsTracker({ userId }: { userId: string }) {
+  useEffect(() => {
+    if (userId === 'none') return;
+    void trackAppEntry(userId);
+    const app = AppState.addEventListener('change', (state) => {
+      if (state === 'active') trackAppOpen(userId);
+    });
+    const stopNet = onReconnect(() => void flushAnalytics());
+    return () => {
+      app.remove();
+      stopNet();
+    };
+  }, [userId]);
   return null;
 }
 

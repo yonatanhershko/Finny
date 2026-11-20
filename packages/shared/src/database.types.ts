@@ -20,6 +20,8 @@ export type Profile = {
   expires_at: string | null;
   created_at: string;
   updated_at: string;
+  /** Never counted in analytics (the owner's test accounts). Set by hand. */
+  analytics_excluded: boolean;
 };
 
 export type SubscriptionEvent = {
@@ -57,6 +59,55 @@ export type DashboardStats = {
   active_subscribers: number;
   pending_approvals: number;
   expiring_soon: number;
+};
+
+/** Events the app sends. sign-up completed is recorded by the database itself. */
+export type AnalyticsEventName = 'first_open' | 'signup_started' | 'first_app_entry' | 'app_open';
+
+/** One Israel-time day of product analytics (docs/spec.md "Analytics"). */
+export type AnalyticsDay = {
+  day: string;
+  dau: number;
+  wau: number;
+  mau: number;
+  new_users: number;
+  returning_users: number;
+  first_opens: number;
+  signups_started: number;
+  signups_completed: number;
+  approved: number;
+  first_entries: number;
+  /** Active users that day by the device of their last app open. */
+  dau_ios: number;
+  dau_android: number;
+};
+
+/** A user seen on both counts once, by the device of their last app open in the range. */
+export type PlatformSplit = {
+  active_ios: number;
+  active_android: number;
+  first_open_ios: number;
+  first_open_android: number;
+};
+
+/** A weekly cohort by first app entry. dN = came back exactly N days later, out of dN_eligible. */
+export type RetentionCohort = {
+  week: string;
+  users: number;
+  d1: number;
+  d1_eligible: number;
+  d7: number;
+  d7_eligible: number;
+  d30: number;
+  d30_eligible: number;
+};
+
+export type AnalyticsReport = {
+  today: string;
+  platforms: PlatformSplit;
+  days: AnalyticsDay[];
+  retention: RetentionCohort[];
+  not_started: number;
 };
 
 export type TransactionType = 'income' | 'expense';
@@ -209,6 +260,17 @@ export type Database = {
       admin_extend_user: { Args: { p_user_id: string; p_months?: AccessMonths }; Returns: Profile };
       admin_set_plan: { Args: { p_user_id: string; p_plan: AccessPlan }; Returns: Profile };
       admin_dashboard_stats: { Args: Record<never, never>; Returns: DashboardStats };
+      admin_analytics: { Args: { p_from: string; p_to: string }; Returns: AnalyticsReport };
+      track_event: {
+        Args: {
+          p_name: AnalyticsEventName;
+          p_device_id: string | null;
+          p_platform: string | null;
+          p_app_version: string | null;
+          p_occurred_at: string;
+        };
+        Returns: undefined;
+      };
       admin_notification_catalog: { Args: Record<never, never>; Returns: NotificationCatalogItem[] };
       admin_push_audience: { Args: { p_user_id?: string | null }; Returns: PushAudience };
       admin_send_notification: {

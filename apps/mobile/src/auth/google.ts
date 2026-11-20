@@ -1,7 +1,8 @@
 import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
-import { Platform } from 'react-native';
+import { isRunningInExpoGo } from 'expo';
+import { Platform, TurboModuleRegistry } from 'react-native';
 
 import { supabase } from '@/lib/supabase';
 
@@ -19,7 +20,9 @@ const ids = (Constants.expoConfig?.extra?.googleClientIds ?? {}) as GoogleIds;
  */
 const useNative =
   Platform.OS !== 'web' &&
-  Constants.executionEnvironment !== 'storeClient' &&
+  !isRunningInExpoGo() &&
+  // Also checks the module is really in this build (asking does not throw, loading does).
+  TurboModuleRegistry.get('RNGoogleSignin') != null &&
   !!ids.web &&
   (Platform.OS !== 'ios' || !!ids.ios);
 

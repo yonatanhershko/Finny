@@ -262,7 +262,7 @@
   },
   "terms": {
     "title": "Terms of use",
-    "updated": "Last updated: November 17, 2026",
+    "updated": "Last updated: November 18, 2026",
     "iRead": "I agree to the terms of use",
     "readFirst": "Open the terms of use and accept them to continue",
     "openLink": "Read the terms of use",
@@ -302,7 +302,7 @@
       },
       {
         "title": "9. Privacy",
-        "body": "What we keep:\n• Your name and email.\n• The wallets, transactions, categories, budgets and goals you enter.\n• Your settings: language, theme, currency and reminders.\n• Your subscription status and when you accepted the terms.\n• A push-notification token, if you allowed notifications.\nWhy: only to run the app, manage your subscription and send reminders.\nWhat we do not do: we do not sell data, show ads or share data with marketers.\nWho processes data for us:\n• Supabase hosts the database on cloud servers outside Israel.\n• Expo, Apple and Google deliver notifications.\nSecurity: each user sees only their own data. The connection is encrypted.\nYour rights: you can view, correct, export and delete your data. For any such request, email yonher8@gmail.com."
+        "body": "What we keep:\n• Your name and email.\n• The wallets, transactions, categories, budgets and goals you enter.\n• Your settings: language, theme, currency and reminders.\n• Your subscription status and when you accepted the terms.\n• A push-notification token, if you allowed notifications.\n• App usage data: when you opened the app and when you signed up, with the device type (iPhone or Android) and the app version. We count app use, not your money: amounts, categories and wallets are never included.\nWhy: only to run the app, manage your subscription, send reminders and understand how many people use Finny.\nWhat we do not do: we do not sell data, show ads or share data with marketers.\nWho processes data for us:\n• Supabase hosts the database on cloud servers outside Israel.\n• Expo, Apple and Google deliver notifications.\nSecurity: each user sees only their own data. The connection is encrypted.\nYour rights: you can view, correct, export and delete your data. For any such request, email yonher8@gmail.com."
       },
       {
         "title": "10. Availability and changes to the service",

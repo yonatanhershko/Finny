@@ -1,6 +1,6 @@
 import { UserListPage } from "@/components/UserListPage";
 
-export default function ApprovalsPage() {
+export function ApprovalsPage() {
   return (
     <UserListPage
       title="Pending approvals"
