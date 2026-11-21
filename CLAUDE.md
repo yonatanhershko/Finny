@@ -16,7 +16,7 @@ Access is a yearly subscription paid by Bit and approved by hand by an admin.
 | `supabase/` | Migrations, edge functions, seed |
 | `docs/spec.md` | Approved product decisions. Business rules live here |
 | `evals/prod-readiness.md` | Checklist to pass before dev → prod |
-| `.github/` | CI on every push, manual prod deploy, weekly dependency report. See `docs/ci-cd.md` |
+| `.github/` | CI on every push (with a dependency report), manual prod deploy. See `docs/ci-cd.md` |
 
 ## Claude setup
 

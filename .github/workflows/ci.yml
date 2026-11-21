@@ -37,6 +37,26 @@ jobs:
       - name: Hebrew and English keys match
         run: node scripts/ci/i18n-check.mjs
 
+  dependencies:
+    name: Dependency report
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # On dev a "must" item is a warning, so work is never blocked by an upstream release.
+      # Into main (push or pull request) it fails: nothing reaches prod with a must-fix open.
+      - name: Report (must / recommended / not urgent)
+        env:
+          STRICT: ${{ github.ref == 'refs/heads/main' || github.base_ref == 'main' }}
+        run: |
+          if [ "$STRICT" = "true" ]; then node scripts/ci/deps-report.mjs --fail-on-must
+          else node scripts/ci/deps-report.mjs; fi
+
   secrets:
     name: Secret scan
     runs-on: ubuntu-latest

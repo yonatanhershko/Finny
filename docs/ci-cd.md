@@ -13,6 +13,7 @@ Branches `dev` and `main`. All jobs must be green before merging into `main`.
 | Build mobile + web | `expo export` for iPhone and Android, and `next build` of the admin dashboard, with public placeholder values. Then the bundle size against `scripts/ci/bundle-budget.json`: fails when a part grows more than 10%. After an intended growth, raise the budget in the same change |
 | Migrations on an empty database + DB tests | A fresh local Supabase applies every file in `supabase/migrations/` in file order (exactly what prod will get), `supabase db lint` checks the functions, four test users are seeded (`supabase/tests/ci-setup.mjs`), then `npm run test:db` (RLS, access, money) runs against it. Dev is never touched |
 | Supabase advisors (dev) | Security and performance advisors of the dev project. Fails on ERROR; WARN and INFO are listed in the job summary |
+| Dependency report | What could be updated and why, see "Dependencies" below |
 
 Accepted advisor warnings (not errors): `security definer` functions callable by signed-in users — each one checks the caller first (`is_admin()`, `auth.uid()`); `track_event` callable without sign-in — analytics before sign-up, validated server-side; tables with RLS on and no policies — read only through `security definer` functions; leaked-password protection — to switch on (see the security review).
 
@@ -29,15 +30,15 @@ Never automatic. Actions tab → "Deploy to production" → Run workflow, on `ma
 
 Migration versions: dev was migrated through the Supabase MCP, which records each migration under the time it was applied, not the file name. So dev's history does not match the files, and the deploy workflow never pushes to dev. Prod starts empty and gets the files in order, under their own names.
 
-## Dependencies (`.github/workflows/deps-report.yml`)
+## Dependencies (CI job "Dependency report")
 
-Owner decision 2026-11-21: nothing updates by itself, no automatic dependency PRs. Every Sunday a workflow updates one GitHub issue, "דוח חבילות שבועי" (label `dependency-report`), from `scripts/ci/deps-report.mjs`:
+Owner decision 2026-11-21: nothing updates by itself, no automatic dependency PRs. Every CI run writes a report to its job summary (Actions → the run → Summary), from `scripts/ci/deps-report.mjs`:
 
 - **חובה (must):** packages Expo needs at another version for the current SDK (`npx expo install --check`), and high / critical vulnerabilities in packages the apps run.
 - **מומלץ (recommended):** patch / minor updates of runtime packages, moderate / low vulnerabilities in packages the apps run. Each with its kind (bug fixes / new features) and a link to what changed.
 - **לא דחוף (not urgent):** major versions (need planning), dev tools, vulnerabilities only in dev tools, and Expo build-tool alerts where npm's "fix" would downgrade Expo (never do that).
 
-The owner picks what to update; it is done on `dev` and goes through CI. Expo, React and React Native packages move only with `npx expo install --fix` or an SDK upgrade. Run it any time: Actions → Dependency report → Run workflow.
+On `dev` a "must" item is only a warning, so an upstream release never blocks work. Into `main` (push or pull request) it fails the check, so nothing reaches prod with a must-fix open. The owner picks what to update; it is done on `dev` and goes through CI. Expo, React and React Native packages move only with `npx expo install --fix` or an SDK upgrade.
 
 ## One-time setup (owner)
 

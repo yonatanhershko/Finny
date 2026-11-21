@@ -1,6 +1,7 @@
 /**
- * Weekly dependency report (owner 2026-11-21: nothing updates by itself; the owner
- * sees why each update exists and decides). Writes Markdown (Hebrew) to stdout:
+ * Dependency report, on every CI run (owner 2026-11-21: nothing updates by itself; the
+ * owner sees why each update exists and decides). Writes Markdown (Hebrew) to stdout
+ * and to the GitHub job summary:
  *
  *   חובה      Expo SDK mismatches (`expo install --check`) and high / critical
  *             vulnerabilities in packages the apps run.
@@ -8,10 +9,12 @@
  *             updates of runtime packages.
  *   לא דחוף   major versions, dev-only tools, vulnerabilities only in dev tools.
  *
- * Read only: changes nothing. Run after `npm ci`:  node scripts/ci/deps-report.mjs > report.md
+ * Read only: changes nothing. Run after `npm ci`:
+ *   node scripts/ci/deps-report.mjs                  report; a "must" item is a warning
+ *   node scripts/ci/deps-report.mjs --fail-on-must   same, but exits 1 on any "must" item (main)
  */
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { appendFileSync, existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../..', import.meta.url)).replace(/\/$/, '');
@@ -135,12 +138,22 @@ const section = (title, why, items) =>
   `## ${title} (${items.length})\n${why}\n\n${items.length ? items.join('\n') : '_אין._'}\n`;
 const commit = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
 
-console.log(`# דוח חבילות שבועי · ${date}
+const report = `# דוח חבילות · ${date}
 
 שום דבר לא מתעדכן לבד. הדוח מראה מה יש, למה, ומה ההמלצה; העדכון עצמו נעשה רק אחרי אישור, ב-\`dev\`, ועובר CI.
-נבדק על \`dev\` (${commit}).
+נבדק על ${commit}.
 
 ${section('חובה', 'אבטחה ברמה גבוהה בחבילות שהאפליקציה מריצה, או חבילות ש-Expo דורש בגרסה אחרת.', must)}${expoHow}
 ${section('מומלץ', 'תיקוני באגים ושיפורים שתואמים לאחור, ואבטחה ברמה בינונית/נמוכה בחבילות שהאפליקציה מריצה.', recommended)}
 ${section('לא דחוף', 'גרסאות ראשיות (צריך תכנון), כלי פיתוח, ואבטחה שנוגעת רק לכלי פיתוח (לא נשלחת למשתמשים).', later)}
-`);
+`;
+console.log(report);
+if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, report);
+if (must.length) {
+  const text = `${must.length} dependency item(s) marked "must" (חובה). See the job summary.`;
+  if (process.argv.includes('--fail-on-must')) {
+    console.error(`::error::${text}`);
+    process.exit(1);
+  }
+  console.log(`::warning::${text}`);
+}
