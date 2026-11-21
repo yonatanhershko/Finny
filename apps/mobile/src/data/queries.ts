@@ -4,6 +4,7 @@ import type {
   Goal,
   GoalDeposit,
   GoalTotal,
+  HistoryRow,
   Period,
   RepeatFrequency,
   Transaction,
@@ -11,13 +12,35 @@ import type {
   UserSettings,
   Wallet,
 } from '@kaspilo/shared';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { fromISODate, todayISO, toISODate } from '@kaspilo/shared';
+import {
+  type InfiniteData,
+  type QueryClient,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
+import { subMonths } from 'date-fns/subMonths';
 import { randomUUID } from 'expo-crypto';
 import { useMemo } from 'react';
 
 import { isOnline, isTransient, OfflineError } from '@/lib/network';
 import { supabase } from '@/lib/supabase';
 
+import {
+  cursorOf,
+  entryOf,
+  HISTORY_BATCH,
+  HISTORY_PAGE,
+  type HistoryCursor,
+  type HistoryEntry,
+  historyKeys,
+  newestFirst,
+  OFFLINE_HISTORY_MONTHS,
+  toPages,
+  txEntry,
+} from './history';
 import { addToTotals, asListed, enqueue, type ListedTransaction, removeQueued, useOutbox } from './outbox';
 import { useWalletId } from './walletContext';
 
@@ -58,6 +81,7 @@ function useInvalidateMoney() {
     Promise.all([
       client.invalidateQueries({ queryKey: ['totals'] }),
       client.invalidateQueries({ queryKey: ['transactions'] }),
+      client.invalidateQueries({ queryKey: ['history'] }),
     ]);
 }
 
@@ -285,14 +309,141 @@ function transactionsQuery(wallet: string, period: Period | null, categoryId?: s
   };
 }
 
+// ---- history (docs/spec.md "Wallets": history list, upcoming, complete export) ----
+
+type HistoryData = InfiniteData<HistoryRow[], HistoryCursor>;
+
+async function historyRead(
+  wallet: string,
+  opts: { upcoming?: boolean; since?: string | null; cursor?: HistoryCursor; limit: number },
+): Promise<HistoryRow[]> {
+  return unwrap<HistoryRow[]>(
+    await supabase.rpc('wallet_history', {
+      p_wallet_id: wallet,
+      p_today: todayISO(),
+      p_upcoming: !!opts.upcoming,
+      p_since: opts.since ?? null,
+      p_cursor_date: opts.cursor?.date ?? null,
+      p_cursor_at: opts.cursor?.at ?? null,
+      p_cursor_id: opts.cursor?.id ?? null,
+      p_limit: opts.limit,
+    }),
+  );
+}
+
 /**
- * Load the wallet's full history in the background while online, so History and
- * category lists have something to show offline (docs/spec.md "Offline").
+ * Every matching row, in batches. Stops only on an empty batch, so a server set to
+ * return fewer rows per read than asked can never cut the result short.
+ */
+async function historyReadAll(wallet: string, opts: { upcoming?: boolean; since?: string | null }): Promise<HistoryRow[]> {
+  const all: HistoryRow[] = [];
+  let cursor: HistoryCursor = null;
+  for (;;) {
+    const rows = await historyRead(wallet, { ...opts, cursor, limit: HISTORY_BATCH });
+    if (rows.length === 0) return all;
+    all.push(...rows);
+    cursor = cursorOf(rows[rows.length - 1]);
+  }
+}
+
+/** The whole wallet for a CSV export: every row up to today and every upcoming one. */
+export async function fetchWalletHistory(wallet: string): Promise<HistoryRow[]> {
+  const [past, upcoming] = await Promise.all([
+    historyReadAll(wallet, {}),
+    historyReadAll(wallet, { upcoming: true }),
+  ]);
+  return [...past, ...upcoming];
+}
+
+const offlineSince = () => toISODate(subMonths(fromISODate(todayISO()), OFFLINE_HISTORY_MONTHS));
+
+/**
+ * Load the current wallet's last 3 months of History (and the upcoming rows) in the
+ * background while online, so History has something to show offline (docs/spec.md "Offline").
  */
 export function usePrefetchHistory() {
   const client = useQueryClient();
   const wallet = useWalletId();
-  return () => client.prefetchQuery(transactionsQuery(wallet, null));
+  return async () => {
+    try {
+      const recent = await historyReadAll(wallet, { since: offlineSince() });
+      // Fill the last page up to a full one, so the list knows whether older rows exist.
+      const short = recent.length % HISTORY_PAGE;
+      if (short > 0 || recent.length === 0) {
+        const cursor = recent.length ? cursorOf(recent[recent.length - 1]) : null;
+        recent.push(...(await historyRead(wallet, { cursor, limit: HISTORY_PAGE - short })));
+      }
+      const key = historyKeys.past(wallet);
+      const current = client.getQueryData<HistoryData>(key);
+      // Keep a longer list the user already scrolled to.
+      if (!current || current.pages.flat().length <= recent.length) client.setQueryData<HistoryData>(key, toPages(recent));
+      await client.prefetchQuery(upcomingQuery(wallet));
+    } catch {
+      // Offline or a passing error: keep what is on the phone.
+    }
+  };
+}
+
+/** Drop History pages older than the offline window, so the phone keeps about 3 months. */
+export function trimHistory(client: QueryClient, wallet: string) {
+  const since = offlineSince();
+  client.setQueryData<HistoryData>(historyKeys.past(wallet), (data) => {
+    if (!data) return data;
+    // Keep every page that starts inside the window, plus the one that crosses it.
+    let keep = data.pages.findIndex((page) => page.length > 0 && page[0].date < since);
+    if (keep === -1) return data;
+    keep = Math.max(keep, 1);
+    if (keep >= data.pages.length) return data;
+    return { pages: data.pages.slice(0, keep), pageParams: data.pageParams.slice(0, keep) };
+  });
+}
+
+function upcomingQuery(wallet: string) {
+  return {
+    queryKey: historyKeys.upcoming(wallet),
+    queryFn: () => historyReadAll(wallet, { upcoming: true }),
+  };
+}
+
+/** Rows up to today, newest first, 50 at a time. Not yet sent transactions are listed too. */
+export function useHistory() {
+  const wallet = useWalletId();
+  const pending = useWalletOutbox(wallet);
+  const query = useInfiniteQuery({
+    queryKey: historyKeys.past(wallet),
+    initialPageParam: null as HistoryCursor,
+    queryFn: ({ pageParam }) => historyRead(wallet, { cursor: pageParam, limit: HISTORY_PAGE }),
+    getNextPageParam: (last: HistoryRow[]) =>
+      last.length < HISTORY_PAGE ? undefined : cursorOf(last[last.length - 1]),
+  });
+  // Offline with nothing saved yet the query waits; still show what is on the phone.
+  const waiting = query.fetchStatus === 'paused';
+  const today = todayISO();
+  const entries = useMemo((): HistoryEntry[] | undefined => {
+    if (!query.data && !waiting) return undefined;
+    const rows = query.data?.pages.flat() ?? [];
+    const ids = new Set(rows.map((row) => row.id));
+    const own = pending.filter((x) => x.date <= today && !ids.has(x.id)).map((x) => txEntry(asListed(x)));
+    const list = rows.map(entryOf);
+    return own.length ? [...own, ...list].sort(newestFirst) : list;
+  }, [query.data, waiting, pending, today]);
+  return { ...query, entries };
+}
+
+/** Rows after today (remaining installment payments), soonest first. */
+export function useUpcoming() {
+  const wallet = useWalletId();
+  const pending = useWalletOutbox(wallet);
+  const query = useQuery(upcomingQuery(wallet));
+  const today = todayISO();
+  const entries = useMemo((): HistoryEntry[] | undefined => {
+    if (!query.data) return undefined;
+    const ids = new Set(query.data.map((row) => row.id));
+    const own = pending.filter((x) => x.date > today && !ids.has(x.id)).map((x) => txEntry(asListed(x)));
+    const list = query.data.map(entryOf);
+    return own.length ? [...own, ...list].sort((a, b) => newestFirst(b, a)) : list;
+  }, [query.data, pending, today]);
+  return { ...query, entries };
 }
 
 export function useTransactions(period: Period | null, categoryId?: string) {
@@ -437,15 +588,6 @@ export function useDeleteTransaction() {
   });
 }
 
-/** Stop a recurring rule: no new occurrences. Past transactions stay. */
-export function useStopRecurring() {
-  return useMutation({
-    mutationFn: async (ruleId: string) => {
-      unwrap(await supabase.from('recurring_rules').update({ active: false }).eq('id', ruleId).select());
-    },
-  });
-}
-
 /** Adds the recurring transactions that came due since the last visit. */
 export async function materializeRecurring(): Promise<number> {
   const { data, error } = await supabase.rpc('materialize_recurring');
@@ -510,7 +652,11 @@ export function useSaveGoal() {
         unwrap(await supabase.from('goals').insert({ ...fields, name, wallet_id: wallet }).select());
       }
     },
-    onSuccess: () => client.invalidateQueries({ queryKey: keys.goals }),
+    onSuccess: () =>
+      Promise.all([
+        client.invalidateQueries({ queryKey: keys.goals }),
+        client.invalidateQueries({ queryKey: ['history'] }),
+      ]),
   });
 }
 
@@ -528,25 +674,11 @@ export function useDeleteGoal() {
         unwrap(await supabase.from('goals').delete().eq('id', input.id).select());
       }
     },
-    onSuccess: () => client.invalidateQueries({ queryKey: keys.goals }),
-  });
-}
-
-/** Every deposit, newest first. Archived goals' deposits are included. */
-export function useAllDeposits() {
-  const wallet = useWalletId();
-  return useQuery({
-    queryKey: [...keys.walletGoals(wallet), 'deposits', 'all'] as const,
-    queryFn: async () =>
-      unwrap<GoalDeposit[]>(
-        await supabase
-          .from('goal_deposits')
-          .select('*')
-          .eq('wallet_id', wallet)
-          .order('date', { ascending: false })
-          .order('created_at', { ascending: false })
-          .limit(2000),
-      ),
+    onSuccess: () =>
+      Promise.all([
+        client.invalidateQueries({ queryKey: keys.goals }),
+        client.invalidateQueries({ queryKey: ['history'] }),
+      ]),
   });
 }
 
@@ -557,7 +689,11 @@ export function useDeleteDeposit() {
     mutationFn: async (id: string) => {
       unwrap(await supabase.from('goal_deposits').delete().eq('id', id).select());
     },
-    onSuccess: () => client.invalidateQueries({ queryKey: keys.goals }),
+    onSuccess: () =>
+      Promise.all([
+        client.invalidateQueries({ queryKey: keys.goals }),
+        client.invalidateQueries({ queryKey: ['history'] }),
+      ]),
   });
 }
 
@@ -567,6 +703,10 @@ export function useDeposit() {
     mutationFn: async (input: { goal_id: string; amount: number }) => {
       unwrap(await supabase.from('goal_deposits').insert(input).select());
     },
-    onSuccess: () => client.invalidateQueries({ queryKey: keys.goals }),
+    onSuccess: () =>
+      Promise.all([
+        client.invalidateQueries({ queryKey: keys.goals }),
+        client.invalidateQueries({ queryKey: ['history'] }),
+      ]),
   });
 }

@@ -1,7 +1,4 @@
 {
-  "app": {
-    "name": "Kaspilo"
-  },
   "common": {
     "loading": "Loading…",
     "retry": "Try again",
@@ -24,7 +21,6 @@
   },
   "auth": {
     "signIn": "Sign in",
-    "signUp": "Sign up",
     "signOut": "Sign out",
     "signInTitle": "Welcome back",
     "signUpTitle": "Create your account",
@@ -74,8 +70,7 @@
     "theme": "Theme",
     "themeSystem": "Match phone",
     "themeLight": "Light",
-    "themeDark": "Dark",
-    "languageRestartNote": "The app reloads to flip direction."
+    "themeDark": "Dark"
   },
   "locked": {
     "contactAdvisor": "Contact your advisor",
@@ -248,6 +243,11 @@
     "deleteWord": "delete",
     "deleteTypeToConfirm": "Type \"{{word}}\" to confirm",
     "deleteConfirm": "Delete account for good"
+  },
+  "history": {
+    "upcoming": "Upcoming payments ({{count}})",
+    "olderOffline": "Older entries show when you are back online.",
+    "loadingMore": "Loading more entries"
   },
   "export": {
     "button": "Export to Excel (CSV)",

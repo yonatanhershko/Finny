@@ -1,11 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { CategoryTotal, Transaction, TransactionType } from '@kaspilo/shared';
-import { notifyManager, type QueryClient } from '@tanstack/react-query';
+import type { CategoryTotal, HistoryRow, Transaction, TransactionType } from '@kaspilo/shared';
+import { todayISO } from '@kaspilo/shared';
+import { type InfiniteData, notifyManager, type QueryClient } from '@tanstack/react-query';
 import { useSyncExternalStore } from 'react';
 
 import { isTransient } from '@/lib/network';
 import { outboxKey } from '@/lib/offlineCache';
 import { supabase } from '@/lib/supabase';
+
+import { historyKeys, rowOf } from './history';
 
 /**
  * Transactions added without internet, kept on the phone until the server has them
@@ -143,10 +146,17 @@ function handOver(client: QueryClient, tx: QueuedTransaction) {
         old && !old.some((x) => x.id === tx.id) ? [listed, ...old] : old,
       );
     }
+    // History: on the first page, unless already there (an upcoming one is refetched below).
+    client.setQueryData<InfiniteData<HistoryRow[]>>(historyKeys.past(tx.wallet_id), (old) =>
+      old && tx.date <= todayISO() && old.pages.length > 0 && !old.pages.some((page) => page.some((row) => row.id === tx.id))
+        ? { ...old, pages: [[rowOf(listed), ...old.pages[0]], ...old.pages.slice(1)] }
+        : old,
+    );
     notifyManager.schedule(() => removeQueued(tx.id));
   });
   void client.invalidateQueries({ queryKey: ['totals', tx.wallet_id] });
   void client.invalidateQueries({ queryKey: ['transactions', tx.wallet_id] });
+  void client.invalidateQueries({ queryKey: historyKeys.all(tx.wallet_id) });
 }
 
 /** Totals per category with the given transactions added in. */

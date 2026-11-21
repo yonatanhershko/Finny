@@ -1,7 +1,4 @@
 {
-  "app": {
-    "name": "Kaspilo"
-  },
   "common": {
     "loading": "טוען…",
     "retry": "נסה שוב",
@@ -24,7 +21,6 @@
   },
   "auth": {
     "signIn": "התחברות",
-    "signUp": "הרשמה",
     "signOut": "יציאה מהחשבון",
     "signInTitle": "ברוך שובך",
     "signUpTitle": "יצירת חשבון",
@@ -74,8 +70,7 @@
     "theme": "ערכת נושא",
     "themeSystem": "לפי המכשיר",
     "themeLight": "בהיר",
-    "themeDark": "כהה",
-    "languageRestartNote": "האפליקציה תיטען מחדש כדי להחליף כיוון."
+    "themeDark": "כהה"
   },
   "locked": {
     "contactAdvisor": "צור קשר עם היועץ שלך",
@@ -248,6 +243,11 @@
     "deleteWord": "מחק",
     "deleteTypeToConfirm": "הקלד \"{{word}}\" לאישור",
     "deleteConfirm": "מחק את החשבון לצמיתות"
+  },
+  "history": {
+    "upcoming": "תשלומים עתידיים ({{count}})",
+    "olderOffline": "תנועות ישנות יותר יופיעו כשיהיה חיבור לאינטרנט.",
+    "loadingMore": "טוען עוד תנועות"
   },
   "export": {
     "button": "ייצוא לאקסל (CSV)",

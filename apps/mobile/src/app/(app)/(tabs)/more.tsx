@@ -134,7 +134,7 @@ export default function MoreScreen() {
         row('account-circle-outline', t('more.account'), profile?.full_name || profile?.email || null, () =>
           show('name', profile?.full_name ?? ''),
         ),
-        row('translate', t('settings.language'), language === 'he' ? 'עברית' : 'English', () => show('language')),
+        row('translate', t('settings.language'), t(language === 'he' ? 'settings.languageHe' : 'settings.languageEn'), () => show('language')),
         row('theme-light-dark', t('settings.theme'), themeLabel[preference], () => show('theme')),
       ])}
 
@@ -213,8 +213,8 @@ export default function MoreScreen() {
         actions={[{ label: t('common.close'), variant: 'outline', onPress: close }]}>
         {choices<Language>(
           [
-            { value: 'he', label: 'עברית' },
-            { value: 'en', label: 'English' },
+            { value: 'he', label: t('settings.languageHe') },
+            { value: 'en', label: t('settings.languageEn') },
           ],
           language,
           (value) => {
@@ -222,9 +222,6 @@ export default function MoreScreen() {
             void changeLanguage(value);
           },
         )}
-        <AppText tone="muted" className="text-[13px]">
-          {t('settings.languageRestartNote')}
-        </AppText>
       </Dialog>
 
       <Dialog

@@ -1,12 +1,11 @@
 import '@/global.css';
 
-import {
-  Rubik_400Regular,
-  Rubik_500Medium,
-  Rubik_700Bold,
-  useFonts,
-} from '@expo-google-fonts/rubik';
+// One import per weight: the package index bundles all 18 Rubik files.
+import { Rubik_400Regular } from '@expo-google-fonts/rubik/400Regular';
+import { Rubik_500Medium } from '@expo-google-fonts/rubik/500Medium';
+import { Rubik_700Bold } from '@expo-google-fonts/rubik/700Bold';
 import { Stack } from 'expo-router';
+import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';

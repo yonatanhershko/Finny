@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { addDays, set } from 'date-fns';
+import { addDays } from 'date-fns/addDays';
+import { set } from 'date-fns/set';
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import { useSyncExternalStore } from 'react';

@@ -217,6 +217,25 @@ export type GoalDeposit = {
   created_at: string;
 };
 
+/** One row of `wallet_history`: a transaction (`kind` 'tx') or a goal deposit (`kind` 'deposit'). */
+export type HistoryRow = {
+  kind: 'tx' | 'deposit';
+  id: string;
+  date: string;
+  created_at: string;
+  /** null for a deposit */
+  type: TransactionType | null;
+  amount: number;
+  description: string;
+  /** null for a deposit */
+  category_id: string | null;
+  recurring_rule_id: string | null;
+  /** null for a transaction */
+  goal_id: string | null;
+  wallet_id: string;
+  user_id: string;
+};
+
 export type CategoryTotal = { category_id: string; type: TransactionType; total: number; count: number };
 export type GoalTotal = { goal_id: string; saved: number };
 
@@ -303,6 +322,19 @@ export type Database = {
           p_first_date: string;
         };
         Returns: string;
+      };
+      wallet_history: {
+        Args: {
+          p_wallet_id: string;
+          p_today: string;
+          p_upcoming?: boolean;
+          p_since?: string | null;
+          p_cursor_date?: string | null;
+          p_cursor_at?: string | null;
+          p_cursor_id?: string | null;
+          p_limit?: number;
+        };
+        Returns: HistoryRow[];
       };
       category_totals: { Args: { p_wallet_id: string; p_from: string; p_to: string }; Returns: CategoryTotal[] };
       create_wallet: { Args: { p_name: string; p_color: string; p_icon: string }; Returns: Wallet };

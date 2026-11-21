@@ -93,6 +93,9 @@ Decided by the owner 2026-11-17. Layout and details chosen by Claude from the ap
 - **Manage:** More → Wallets: order (move up / down), edit, export the wallet to CSV, delete.
 - **Delete:** only from More → Wallets. Deletes the wallet and all its data for good. The dialog offers the CSV export first and asks the user to type the wallet's name. The last wallet cannot be deleted. When the current wallet is deleted, the app moves to the first remaining one.
 - History and the CSV export cover the current wallet only.
+- **History list (owner 2026-11-21):** newest first, 50 rows at a time; the next 50 load as the user scrolls to the end (no "load more" button). Only rows on screen are drawn, so thousands of rows stay smooth.
+- **Upcoming in history (owner 2026-11-21):** rows dated after today (the remaining payments of installments) are not mixed into the list. They sit in one folded group "Upcoming payments (N)" at the top, soonest first; tap to open or close it. Folded by default.
+- **CSV export is always complete (owner 2026-11-21):** the export (History and More → Wallets) reads every row of the wallet from the server in batches, never only what the list has loaded, upcoming payments included. Offline, the History export has only what is on the phone (see "Offline").
 - Enforced in the database: the 4 limit, the last-wallet rule, and that every row's wallet belongs to the same user.
 
 ## Screens
@@ -128,7 +131,7 @@ Decided by the owner 2026-11-17. No effect on any amount, budget or stat.
 
 Decided by the owner 2026-11-18.
 
-- **Fast start:** the last data seen (wallets, categories, totals, transactions, goals, settings) is kept on the phone per user, at most 7 days old. The app opens with it at once and refreshes in the background when online. Signing out or deleting the account clears it.
+- **Fast start:** the last data seen (wallets, categories, totals, transactions, goals, settings) is kept on the phone per user, at most 7 days old. For History, the phone keeps the current wallet's last 3 months (owner 2026-11-21); older rows need the internet. The app opens with it at once and refreshes in the background when online. Signing out or deleting the account clears it.
 - **Access offline:** the last subscription status read from the server is kept on the phone. Offline, the app opens if that status still gives access (expiry date not passed). Display only: the server (RLS) decides every read and write.
 - **Add offline:** only a plain income or expense (no repeat, no installments). It is saved on the phone in a queue, with the wallet that was open when it was added, and sent when the internet is back. Each one gets its id on the phone, so sending twice never makes two rows.
 - **Counted at once:** a queued transaction counts in its own wallet's totals, budgets, stats and lists right away, with a small "not synced" tag. Once the server has it, the tag goes.

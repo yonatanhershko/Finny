@@ -35,7 +35,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${rubik.variable} h-full antialiased`}
       style={tokenVars}
     >
-      <body className="min-h-full flex flex-col font-sans">
+      {/* Browser extensions (e.g. ColorZilla's cz-shortcut-listen) add attributes to <body>
+          before React loads; ignore those, this level only. */}
+      <body className="min-h-full flex flex-col font-sans" suppressHydrationWarning>
         <AdminAuthProvider>{children}</AdminAuthProvider>
       </body>
     </html>
