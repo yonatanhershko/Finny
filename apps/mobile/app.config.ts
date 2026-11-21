@@ -45,6 +45,10 @@ const config: ExpoConfig = {
   icon: './assets/images/icon.png',
   scheme: isProd ? 'kaspilo' : 'kaspilo-dev',
   userInterfaceStyle: 'automatic',
+  // EAS Update (docs/ci-cd.md): JS-only fixes reach installed apps without a store review.
+  // An update only goes to builds with the same app version (runtime), so a native change needs a new build.
+  runtimeVersion: { policy: 'appVersion' },
+  updates: { url: `https://u.expo.dev/${easProjectId}` },
   ios: {
     bundleIdentifier: bundleId,
     // Optional: signing team for local device builds, set per machine (APPLE_TEAM_ID=...). Not stored in git.

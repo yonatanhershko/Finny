@@ -1,0 +1,120 @@
+# Every push and pull request to dev / main (docs/ci-cd.md).
+# Checks the code, scans for secrets, builds both apps, replays every migration on an
+# empty database and runs the DB tests there, and reads the Supabase advisors of dev.
+name: CI
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+  workflow_dispatch:
+  # Also run as the first step of a production deploy.
+  workflow_call:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Typecheck, lint, tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - name: Hebrew and English keys match
+        run: node scripts/ci/i18n-check.mjs
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build:
+    name: Build mobile + web
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    # Public placeholder values: this job only proves the apps build. Real values live in
+    # EAS / Vercel environments, never in the repository.
+    env:
+      EXPO_PUBLIC_APP_ENV: development
+      EXPO_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_placeholder
+      NEXT_PUBLIC_APP_ENV: development
+      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_placeholder
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Export iPhone and Android bundles
+        working-directory: apps/mobile
+        run: npx expo export --platform ios --platform android --output-dir dist
+      - name: Bundle size against budget
+        run: node scripts/ci/bundle-size.mjs apps/mobile/dist
+      - name: Build admin dashboard
+        run: npm run build -w @kaspilo/web
+
+  database:
+    name: Migrations on an empty database + DB tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Supabase project files
+        run: test -f supabase/config.toml || supabase init
+      - name: Start a local Supabase (applies every migration in file order)
+        run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,realtime,storage-api,postgres-meta
+      - name: Lint database functions
+        run: supabase db lint --level error
+      - name: Seed test users
+        run: |
+          supabase status -o env | sed -E 's/^([A-Z_]+)="?([^"]*)"?$/\1=\2/' >> "$GITHUB_ENV"
+      - run: node supabase/tests/ci-setup.mjs
+      - name: DB tests (RLS, access, money)
+        run: npm run test:db
+      - if: always()
+        run: supabase stop --no-backup
+
+  advisors:
+    name: Supabase advisors (dev)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Pull requests from forks get no secrets; the script then skips.
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJECT_REF: ${{ vars.DEV_PROJECT_REF }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: node scripts/ci/advisors.mjs
