@@ -1,0 +1,41 @@
+# Weekly dependency report (docs/ci-cd.md). Changes nothing: it updates one GitHub
+# issue that lists what could be updated, why, and whether it is a must, recommended
+# or not urgent. The owner decides; updates are then made by hand on dev.
+name: Dependency report
+
+on:
+  schedule:
+    - cron: '0 6 * * 0' # Sundays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build the report
+        run: node scripts/ci/deps-report.mjs > report.md
+      - name: Update the report issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create dependency-report --color BFD4F2 --description "Weekly dependency report" --force
+          number=$(gh issue list --label dependency-report --state open --json number --jq '.[0].number')
+          if [ -n "$number" ]; then
+            gh issue edit "$number" --body-file report.md
+            gh issue comment "$number" --body "הדוח עודכן: $(date -u +%F)."
+          else
+            gh issue create --title "דוח חבילות שבועי" --label dependency-report --body-file report.md
+          fi

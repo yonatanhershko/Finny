@@ -29,17 +29,23 @@ Never automatic. Actions tab → "Deploy to production" → Run workflow, on `ma
 
 Migration versions: dev was migrated through the Supabase MCP, which records each migration under the time it was applied, not the file name. So dev's history does not match the files, and the deploy workflow never pushes to dev. Prod starts empty and gets the files in order, under their own names.
 
-## Dependencies (`.github/dependabot.yml`)
+## Dependencies (`.github/workflows/deps-report.yml`)
 
-Weekly PRs into `dev`, minor and patch grouped, CI checks each. Expo, React and React Native packages are left out: they move with the Expo SDK (`npx expo install --fix`).
+Owner decision 2026-11-21: nothing updates by itself, no automatic dependency PRs. Every Sunday a workflow updates one GitHub issue, "דוח חבילות שבועי" (label `dependency-report`), from `scripts/ci/deps-report.mjs`:
+
+- **חובה (must):** packages Expo needs at another version for the current SDK (`npx expo install --check`), and high / critical vulnerabilities in packages the apps run.
+- **מומלץ (recommended):** patch / minor updates of runtime packages, moderate / low vulnerabilities in packages the apps run. Each with its kind (bug fixes / new features) and a link to what changed.
+- **לא דחוף (not urgent):** major versions (need planning), dev tools, vulnerabilities only in dev tools, and Expo build-tool alerts where npm's "fix" would downgrade Expo (never do that).
+
+The owner picks what to update; it is done on `dev` and goes through CI. Expo, React and React Native packages move only with `npx expo install --fix` or an SDK upgrade. Run it any time: Actions → Dependency report → Run workflow.
 
 ## One-time setup (owner)
 
 GitHub repository → Settings:
 
 1. **Secrets and variables → Actions → Secrets:**
-   - `SUPABASE_ACCESS_TOKEN` — supabase.com → Account → Access Tokens → Generate. Used for the advisors and prod migrations.
-   - `EXPO_TOKEN` — expo.dev → Account settings → Access tokens → Create (a robot token is best).
+   - `SUPABASE_ACCESS_TOKEN` — supabase.com → Account → Access Tokens → Generate. Name `kaspilo-github-ci`, access to the dev project only, read-only. Used only for the advisors (prod migrations use `PROD_DB_URL`). Renew it before it expires.
+   - `EXPO_TOKEN` — expo.dev → Account settings → Access tokens → Create. Name `kaspilo-github-ci`, limited to the account `yonatan88` with role Developer (enough for builds and updates).
 2. **Secrets and variables → Actions → Variables:** `DEV_PROJECT_REF` = the dev project ref (the part before `.supabase.co` in the dev URL).
 3. **Environments → `production`:** required reviewer = the owner; deployment branches = `main` only. Its secret `PROD_DB_URL` = the prod database connection string (Supabase → prod project → Connect → Session pooler URI, with the database password). Add it only when the prod project exists.
 4. **Expo (expo.dev → project kaspilo → Environment variables → production):** the prod `EXPO_PUBLIC_*` values and `GOOGLE_SERVICES_JSON` (file). Without them a production build cannot reach prod.
