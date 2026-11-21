@@ -46,7 +46,32 @@ Init → Phase 1 infra → Phase 5 tokens / theme / i18n / leaf art → Phase 2 
 - Forgot password: from sign-in. Email → 6-digit code sent by email → code + new password. No OTP at sign-up (the admin approval is the gate; clients are personal, a few per month). Needs custom SMTP and a code template, see `docs/prod-setup.md`. (owner 2026-11-14)
 - Google sign-in (owner 2026-11-16): one "Continue with Google" button on the sign-in screen, under the password form; it signs in an existing user or creates a new one. On the phone it uses Google's native sign-in sheet (shows "Kaspilo", not the Supabase address) and Supabase checks the ID token; web and Expo Go fall back to Supabase hosted Google OAuth in the browser, back to `<scheme>://auth-callback`. One Google OAuth web client serves dev and prod (owner 2026-11-17). Name comes from Google. A new Google user never saw the sign-up terms tab, so the first sign-in opens the terms screen: "I agree" saves `terms_version` / `terms_accepted_at`, the other choice signs out. Then the usual locked screen until an admin approves. (terms gate and button placement chosen by Claude) Setup steps: `docs/google-sign-in.md`.
 - Facebook sign-in: later, when the owner has the developer account.
+- Password protection (owner 2026-11-21). On the free Supabase plan, since the built-in hook for this needs the Team plan:
+  - Every password action (sign-in in the app and on the admin web, sign-up, reset with the code) goes through the Edge Function `auth-password`. It mixes the password with a server secret (`AUTH_PASSWORD_PEPPER`, only in Supabase function secrets) and gives Supabase only the result. So a password sent straight to Supabase never works, even a correct one, and the limits below cannot be skipped.
+  - **5 wrong passwords in a row for the same email lock password sign-in for that email for 15 minutes.** The 5th wrong try already shows the lock with the minutes left. During the lock the password is not even checked. Wrong tries older than 24 hours do not count. A correct sign-in or a password reset clears the count and the lock. "Forgot password" works during a lock, so nobody can lock a user out for good. The same answer for an email with no account, so the lock tells nothing about who is registered.
+  - Per network address, Supabase's own limit stays (sign-ins and sign-ups per IP per 5 minutes). The function passes on the user's real address, so all users are not counted as one.
+  - Leaked passwords: on sign-up and on a new password after reset, the function checks the password against HaveIBeenPwned (only the first 5 characters of its SHA-1 hash leave the server). A leaked password is refused: "This password appeared in a data leak. Choose another." If that service does not answer within 3 seconds, the password is accepted (sign-up never breaks because of it). Not checked at sign-in.
+  - Minimum length 8 is checked in the function too, not only in the app.
+  - Users from before this change: their first correct sign-in moves their password to the new form, by itself.
+  - If the server secret is lost, every password stops working; users get back in with "Forgot password". The owner keeps a copy of it outside Supabase.
+  - Accepted: a signed-in user who changes their own password straight through Supabase (not through the app) weakens only their own account.
 - Apple sign-in: not wanted. **Open issue, now live:** with Google sign-in on iOS, App Store guideline 4.8 asks for an equivalent privacy-focused login (Sign in with Apple), or review may reject the app. Decide before the first App Store submission: add Apple, or hide the Google button on iOS.
+
+## Request limits (owner 2026-11-21)
+
+Each signed-in user, enforced in the database (not in the app), so a changed client cannot flood the server:
+
+| What | Limit |
+| --- | --- |
+| Saving transactions (a single one, a recurring one, installments, the catch-up of recurring ones) | 60 saves a minute and 2,000 a day. One save counts once, however many rows it makes (installments up to 120) |
+| Transaction rows | 5,000 a day (stops one huge save) |
+| New wallets, categories, goals, goal deposits, recurring rules | 30 a minute and 500 a day, each kind on its own |
+| Registering a new phone for notifications | 10 new device tokens an hour (the app updates its own token on every open; that is not counted) |
+| Reading (lists, history, export) | No extra limit: RLS already shows a user only their own rows, and lists load in pages |
+
+- Minutes and days are fixed windows (a minute on the clock, a UTC day). Changes and deletions are not limited. Server jobs (daily cron, sign-up defaults) are not counted.
+- Over the limit the server answers 429 and nothing is saved. The app shows "Too many actions. Wait a minute and try again." A transaction added offline stays on the phone and is sent again later, so nothing is lost.
+- Analytics events keep their own limits ("Analytics").
 
 ## Money
 

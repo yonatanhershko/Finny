@@ -55,6 +55,16 @@ where email = 'your-email@example.com';
 
 In Supabase Auth settings for prod: turn "Confirm email" off (the app does not send confirmation emails), and add `kaspilo://` to the allowed redirect URLs.
 
+### Password protection (Edge Function `auth-password`)
+
+Every password sign-in, sign-up and reset goes through this function (docs/spec.md "Sign-in"). Do these **before** the first user signs up, on dev and again on prod:
+
+1. Make the server secret, on your computer: `openssl rand -base64 48`. Save it in your password manager first ("Kaspilo AUTH_PASSWORD_PEPPER — prod"). Losing it means every user has to use "Forgot password".
+2. Supabase → the project → Edge Functions → Secrets → Add new secret: name `AUTH_PASSWORD_PEPPER`, value = that secret. Dev and prod get **different** secrets.
+3. Supabase → the project → Authentication → Rate Limits → turn on **IP address forwarding**, so Supabase counts each user's own address and not the function's.
+4. The function itself: the deploy workflow deploys it with the migrations (`docs/ci-cd.md`). By hand: `supabase functions deploy auth-password --no-verify-jwt --project-ref <ref>`.
+5. Leave Supabase's own "Prevent use of leaked passwords" off (it is a paid feature and would check the mixed password, not the real one); the function checks HaveIBeenPwned itself.
+
 ## 4. Push notifications
 
 See `docs/notifications-setup.md`.

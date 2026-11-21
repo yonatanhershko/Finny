@@ -1,16 +1,19 @@
-import { hasAccess, type Profile } from '@kaspilo/shared';
+import { callPasswordAuth, hasAccess, lockMinutes, type PasswordAuthRequest, type PasswordAuthResult, type Profile } from '@kaspilo/shared';
 import { isAuthRetryableFetchError, type Session } from '@supabase/supabase-js';
+import type { TFunction } from 'i18next';
 import { createContext, type ReactNode, use, useCallback, useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 
 import { clearOfflineData, loadProfile as loadSavedProfile, saveProfile } from '@/lib/offlineCache';
 import { secureStorage } from '@/lib/secure-storage';
+import { env } from '@/lib/env';
 import { AUTH_STORAGE_KEY, supabase } from '@/lib/supabase';
 import { resetOutbox } from '@/data/outbox';
 import { clearNotificationsOnSignOut } from '@/notifications';
 
 import { signInWithGoogle, signOutGoogle } from './google';
 import { TERMS_VERSION } from './terms';
+import { MIN_PASSWORD_LENGTH } from './validation';
 
 /** Error codes the screens translate. Anything unknown becomes `generic`. */
 export type AuthErrorCode =
@@ -19,6 +22,8 @@ export type AuthErrorCode =
   | 'emailInvalid'
   | 'codeInvalid'
   | 'tooManyRequests'
+  | 'locked'
+  | 'passwordLeaked'
   | 'weakPassword'
   | 'confirmEmail'
   | 'network'
@@ -92,10 +97,15 @@ function toErrorCode(error: { code?: string; status?: number; message?: string }
     case 'email_exists':
       return 'emailTaken';
     case 'otp_expired':
+    case 'otp_disabled':
       return 'codeInvalid';
     case 'over_email_send_rate_limit':
     case 'over_request_rate_limit':
       return 'tooManyRequests';
+    case 'locked':
+      return 'locked';
+    case 'password_leaked':
+      return 'passwordLeaked';
     case 'validation_failed':
     case 'email_address_invalid':
       return 'emailInvalid';
@@ -107,6 +117,30 @@ function toErrorCode(error: { code?: string; status?: number; message?: string }
       // fetch failures surface with no status
       return error.status === undefined || error.status === 0 ? 'network' : 'generic';
   }
+}
+
+/** Minutes left of the last lock reported, for the "locked" message. */
+let lastLockMinutes = 15;
+
+/** The message for an auth error code, with its numbers filled in. */
+export function authErrorText(t: TFunction, code: AuthErrorCode): string {
+  return t(`auth.errors.${code}`, { minutes: lastLockMinutes, min: MIN_PASSWORD_LENGTH });
+}
+
+/**
+ * Runs a password action through the `auth-password` Edge Function, then starts the
+ * session it returns. Returns null on success, or the error code. 'confirmEmail' when
+ * sign-up worked but Supabase still asks for email confirmation (no session).
+ */
+async function passwordAction(request: PasswordAuthRequest): Promise<AuthErrorCode | null> {
+  const result: PasswordAuthResult = await callPasswordAuth(env.supabaseUrl, env.supabasePublishableKey, request);
+  if (!result.ok) {
+    if (result.code === 'locked') lastLockMinutes = lockMinutes(result.retryAfter);
+    return toErrorCode({ code: result.code, status: result.status });
+  }
+  if (!result.session) return 'confirmEmail';
+  const { error } = await supabase.auth.setSession(result.session);
+  return error ? toErrorCode(error) : null;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -177,10 +211,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     profileError: userId !== null && profileLoadedFor === userId && profileError,
     access: signedInProfile ? hasAccess(signedInProfile) : false,
     termsAccepted: typeof session?.user.user_metadata?.terms_version === 'string',
-    signIn: async (email, password) => {
-      const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-      return error ? toErrorCode(error) : null;
-    },
+    signIn: (email, password) => passwordAction({ action: 'sign-in', email: email.trim(), password }),
     signInWithGoogle: async () => {
       const result = await signInWithGoogle();
       if (result === 'cancelled') return 'cancelled';
@@ -193,39 +224,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       return error ? toErrorCode(error) : null;
     },
-    signUp: async (fullName, email, password) => {
-      const { data, error } = await supabase.auth.signUp({
+    // The function saves the terms version and the time it accepted them.
+    signUp: (fullName, email, password) =>
+      passwordAction({
+        action: 'sign-up',
         email: email.trim(),
         password,
-        options: {
-          data: {
-            full_name: fullName.trim(),
-            terms_version: TERMS_VERSION,
-            terms_accepted_at: new Date().toISOString(),
-          },
-        },
-      });
-      if (error) return toErrorCode(error);
-      // No session means the project still asks for email confirmation.
-      return data.session ? null : 'confirmEmail';
-    },
+        fullName: fullName.trim(),
+        termsVersion: TERMS_VERSION,
+      }),
     requestPasswordReset: async (email) => {
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
       return error ? toErrorCode(error) : null;
     },
-    resetPassword: async (email, code, newPassword) => {
-      const verified = await supabase.auth.verifyOtp({
-        email: email.trim(),
-        token: code.trim(),
-        type: 'recovery',
-      });
-      if (verified.error) {
-        const mapped = toErrorCode(verified.error);
-        return mapped === 'generic' ? 'codeInvalid' : mapped;
-      }
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      return error ? toErrorCode(error) : null;
-    },
+    resetPassword: (email, code, newPassword) =>
+      passwordAction({ action: 'reset', email: email.trim(), password: newPassword, code: code.trim() }),
     signOut: async () => {
       // While still signed in: this device stops getting the user's reminders.
       await clearNotificationsOnSignOut();

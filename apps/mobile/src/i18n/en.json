@@ -3,6 +3,7 @@
     "loading": "Loading…",
     "retry": "Try again",
     "errorGeneric": "Something went wrong. Try again.",
+    "tooManyActions": "Too many actions. Wait a minute and try again.",
     "next": "Continue",
     "back": "Back",
     "save": "Save",
@@ -44,7 +45,9 @@
       "network": "No connection. Try again",
       "generic": "Something went wrong. Try again",
       "codeInvalid": "That code is wrong or has expired. Send a new one",
-      "tooManyRequests": "Too many tries. Wait a few minutes and try again"
+      "tooManyRequests": "Too many tries. Wait a few minutes and try again",
+      "locked": "Too many wrong passwords. Try again in {{minutes}} minutes, or reset your password",
+      "passwordLeaked": "This password appeared in a data leak. Choose another"
     },
     "forgot": {
       "title": "Reset your password",

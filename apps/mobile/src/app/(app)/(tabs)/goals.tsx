@@ -20,6 +20,7 @@ import { type GoalWithSaved, useDeleteGoal, useDeposit, useGoals, useSaveGoal } 
 import { useRowAlign } from '@/i18n';
 import { noteGoalReached } from '@/lib/review';
 import { WalletSwitcher } from '@/components/wallet/WalletSwitcher';
+import { saveErrorKey } from '@/lib/network';
 
 const GOAL_ICONS = ['flag', 'airplane', 'chart-line', 'home', 'car', 'school', 'beach', 'piggy-bank', 'gift', 'laptop'];
 
@@ -164,8 +165,8 @@ function GoalDialog({ onClose }: { onClose: () => void }) {
     try {
       await save.mutateAsync({ name, target_amount: amount, icon });
       onClose();
-    } catch {
-      setError(t('common.errorGeneric'));
+    } catch (e) {
+      setError(t(saveErrorKey(e)));
     }
   };
 
@@ -224,8 +225,8 @@ function DepositDialog({ goal, onClose }: { goal: GoalWithSaved; onClose: () => 
       const reached = goal.saved < goal.target_amount && goal.saved + minor >= goal.target_amount;
       if (reached && userId) void noteGoalReached(userId);
       onClose();
-    } catch {
-      setError(t('common.errorGeneric'));
+    } catch (e) {
+      setError(t(saveErrorKey(e)));
     }
   };
 

@@ -19,7 +19,7 @@ import { useWallet } from '@/data/walletContext';
 import { useAuth } from '@/auth/AuthProvider';
 import { useRowAlign } from '@/i18n';
 import { useKeyboardVisible } from '@/lib/keyboard';
-import { OfflineError } from '@/lib/network';
+import { OfflineError, saveErrorKey } from '@/lib/network';
 import { noteTransactionSaved } from '@/lib/review';
 import {
   type Repeat,
@@ -129,7 +129,7 @@ export default function AddTransactionSheet() {
       closeSheet();
     } catch (e) {
       // Offline only a plain income or expense can be added (docs/spec.md "Offline").
-      fail(t(e instanceof OfflineError ? (isEdit ? 'offline.needsInternet' : 'offline.repeatNeedsInternet') : 'common.errorGeneric'));
+      fail(t(e instanceof OfflineError ? (isEdit ? 'offline.needsInternet' : 'offline.repeatNeedsInternet') : saveErrorKey(e)));
     }
   };
 

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, View } from 'react-native';
 
-import { useAuth } from '@/auth/AuthProvider';
+import { authErrorText, useAuth } from '@/auth/AuthProvider';
 import { checkEmail } from '@/auth/validation';
 import { GoogleLogo } from '@/components/GoogleLogo';
 import { WalletHero } from '@/components/nature/WalletHero';
@@ -45,7 +45,7 @@ export default function SignInScreen() {
     const error = await signIn(email, password);
     setBusy(false);
     // On success the guard in the root layout moves to the right area.
-    if (error) setFormError(t(`auth.errors.${error}`));
+    if (error) setFormError(authErrorText(t, error));
   };
 
   return (

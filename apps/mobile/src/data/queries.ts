@@ -25,7 +25,7 @@ import { subMonths } from 'date-fns/subMonths';
 import { randomUUID } from 'expo-crypto';
 import { useMemo } from 'react';
 
-import { isOnline, isTransient, OfflineError } from '@/lib/network';
+import { isOnline, isTransient, OfflineError, RateLimitError } from '@/lib/network';
 import { supabase } from '@/lib/supabase';
 
 import {
@@ -52,7 +52,10 @@ import { useWalletId } from './walletContext';
  */
 
 function unwrap<T>(result: { data: T | null; error: { message: string; code?: string } | null; status?: number }): T {
-  if (result.error) throw isTransient(result) ? new OfflineError() : new Error(result.error.message);
+  if (result.error) {
+    if (result.status === 429) throw new RateLimitError();
+    throw isTransient(result) ? new OfflineError() : new Error(result.error.message);
+  }
   return result.data as T;
 }
 
@@ -161,11 +164,12 @@ export function useCreateWallet() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: async (input: { name: string; color: string; icon: string }) => {
-      const { data, error } = await supabase.rpc('create_wallet', {
+      const { data, error, status } = await supabase.rpc('create_wallet', {
         p_name: input.name.trim(),
         p_color: input.color,
         p_icon: input.icon,
       });
+      if (error && status === 429) throw new RateLimitError();
       if (error) throw error.message.includes('wallet_limit') ? new WalletLimitError() : new Error(error.message);
       return data as Wallet;
     },

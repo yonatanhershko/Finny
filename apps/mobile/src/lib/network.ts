@@ -46,6 +46,18 @@ export class OfflineError extends Error {
   }
 }
 
+/** The server refused: this user sent too many requests (docs/spec.md "Request limits"). */
+export class RateLimitError extends Error {
+  constructor() {
+    super('rate_limited');
+  }
+}
+
+/** i18n key for a failed save: the rate-limit message, else the given one. */
+export function saveErrorKey(e: unknown, fallback = 'common.errorGeneric'): string {
+  return e instanceof RateLimitError ? 'common.tooManyActions' : fallback;
+}
+
 /**
  * A failed Supabase call that may work later (no connection, timeout, server busy),
  * as opposed to a refusal by the server (rules, missing row) that will fail again.

@@ -8,14 +8,14 @@ Branches `dev` and `main`. All jobs must be green before merging into `main`.
 
 | Job | What it proves |
 | --- | --- |
-| Typecheck, lint, tests | `npm run typecheck`, `npm run lint`, `npm test`, Hebrew and English keys match (`scripts/ci/i18n-check.mjs`) |
+| Typecheck, lint, tests | `npm run typecheck`, `npm run lint`, `npm test`, Hebrew and English keys match (`scripts/ci/i18n-check.mjs`), `deno check` + `deno lint` of the Edge Functions |
 | Secret scan | gitleaks over the whole history: no keys, tokens or passwords in git |
 | Build mobile + web | `expo export` for iPhone and Android, and `next build` of the admin dashboard, with public placeholder values. Then the bundle size against `scripts/ci/bundle-budget.json`: fails when a part grows more than 10%. After an intended growth, raise the budget in the same change |
-| Migrations on an empty database + DB tests | A fresh local Supabase applies every file in `supabase/migrations/` in file order (exactly what prod will get), `supabase db lint` checks the functions, four test users are seeded (`supabase/tests/ci-setup.mjs`), then `npm run test:db` (RLS, access, money) runs against it. Dev is never touched |
+| Migrations on an empty database + DB tests | A fresh local Supabase applies every file in `supabase/migrations/` in file order (exactly what prod will get), `supabase db lint` checks the functions, the Edge Functions are served with a throwaway server secret, four test users are seeded (`supabase/tests/ci-setup.mjs`), then `npm run test:db` runs against it: money, access, the password lock (5 wrong → 15 minutes, reset, leaked passwords) and the request limits. Dev is never touched |
 | Supabase advisors (dev) | Security and performance advisors of the dev project. Fails on ERROR; WARN and INFO are listed in the job summary |
 | Dependency report | What could be updated and why, see "Dependencies" below |
 
-Accepted advisor warnings (not errors): `security definer` functions callable by signed-in users — each one checks the caller first (`is_admin()`, `auth.uid()`); `track_event` callable without sign-in — analytics before sign-up, validated server-side; tables with RLS on and no policies — read only through `security definer` functions; leaked-password protection — to switch on (see the security review).
+Accepted advisor warnings (not errors): `security definer` functions callable by signed-in users — each one checks the caller first (`is_admin()`, `auth.uid()`); `track_event` callable without sign-in — analytics before sign-up, validated server-side; tables with RLS on and no policies — read only through `security definer` functions; leaked-password protection — the free plan has no such setting and it would check the mixed password anyway; the `auth-password` Edge Function checks HaveIBeenPwned itself (docs/spec.md "Sign-in").
 
 ## Production (`.github/workflows/deploy.yml`)
 
@@ -23,7 +23,7 @@ Never automatic. Actions tab → "Deploy to production" → Run workflow, on `ma
 
 | Choice | What happens |
 | --- | --- |
-| migrations | `supabase db push` to the prod database: shows the pending files, then applies them in file order |
+| migrations | `supabase db push` to the prod database: shows the pending files, then applies them in file order. Then deploys the Edge Functions (`auth-password`) |
 | store build | `eas build --profile production` for iPhone, Android or both. Runs in Expo's cloud; submit to the stores from expo.dev |
 | migrations + store build | both, migrations first |
 | update (JS only) | `eas update --channel production`: JS and asset fixes reach installed apps without a store review. Only builds with the same app version get it; any native change (new native package, permission, icon, config plugin) needs a store build |
@@ -48,6 +48,10 @@ GitHub repository → Settings:
    - `SUPABASE_ACCESS_TOKEN` — supabase.com → Account → Access Tokens → Generate. Name `kaspilo-github-ci`, access to the dev project only, read-only. Used only for the advisors (prod migrations use `PROD_DB_URL`). Renew it before it expires.
    - `EXPO_TOKEN` — expo.dev → Account settings → Access tokens → Create. Name `kaspilo-github-ci`, limited to the account `yonatan88` with role Developer (enough for builds and updates).
 2. **Secrets and variables → Actions → Variables:** `DEV_PROJECT_REF` = the dev project ref (the part before `.supabase.co` in the dev URL).
-3. **Environments → `production`:** required reviewer = the owner; deployment branches = `main` only. Its secret `PROD_DB_URL` = the prod database connection string (Supabase → prod project → Connect → Session pooler URI, with the database password). Add it only when the prod project exists.
+3. **Environments → `production`:** required reviewer = the owner; deployment branches = `main` only. Add these only when the prod project exists:
+   - secret `PROD_DB_URL` = the prod database connection string (Supabase → prod project → Connect → Session pooler URI, with the database password);
+   - secret `PROD_SUPABASE_ACCESS_TOKEN` = a Supabase access token named `kaspilo-github-deploy`, with access to the prod project (deploys the Edge Functions);
+   - variable `PROD_PROJECT_REF` = the prod project ref.
+   And the function's own server secret, see `docs/prod-setup.md` "Password protection".
 4. **Expo (expo.dev → project kaspilo → Environment variables → production):** the prod `EXPO_PUBLIC_*` values and `GOOGLE_SERVICES_JSON` (file). Without them a production build cannot reach prod.
 5. **Branch protection for `main`:** require a pull request and the CI jobs above.

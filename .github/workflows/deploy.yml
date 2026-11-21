@@ -56,7 +56,7 @@ jobs:
     secrets: inherit
 
   migrations:
-    name: Prod migrations
+    name: Prod migrations + Edge Functions
     needs: ci
     if: inputs.what == 'migrations' || inputs.what == 'migrations + store build'
     runs-on: ubuntu-latest
@@ -64,6 +64,8 @@ jobs:
     timeout-minutes: 15
     env:
       PROD_DB_URL: ${{ secrets.PROD_DB_URL }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.PROD_SUPABASE_ACCESS_TOKEN }}
+      PROD_PROJECT_REF: ${{ vars.PROD_PROJECT_REF }}
     steps:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
@@ -74,6 +76,13 @@ jobs:
         run: supabase db push --db-url "$PROD_DB_URL" --dry-run
       - name: Apply, in file order
         run: supabase db push --db-url "$PROD_DB_URL"
+      # After the migrations: the functions call database functions they add.
+      - name: Deploy Edge Functions (public sign-in endpoint, so no JWT check)
+        run: |
+          if [ -z "$SUPABASE_ACCESS_TOKEN" ] || [ -z "$PROD_PROJECT_REF" ]; then
+            echo "Missing PROD_SUPABASE_ACCESS_TOKEN (secret) or PROD_PROJECT_REF (variable): see docs/ci-cd.md"; exit 1
+          fi
+          supabase functions deploy auth-password --project-ref "$PROD_PROJECT_REF" --no-verify-jwt
 
   store-build:
     name: EAS store build

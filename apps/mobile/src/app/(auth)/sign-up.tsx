@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, View } from 'react-native';
 
-import { useAuth } from '@/auth/AuthProvider';
+import { authErrorText, useAuth } from '@/auth/AuthProvider';
 import { resetTermsRead, useTermsRead } from '@/auth/terms';
 import { checkEmail, checkName, checkPassword, MIN_PASSWORD_LENGTH } from '@/auth/validation';
 import { WalletHero } from '@/components/nature/WalletHero';
@@ -69,7 +69,7 @@ export default function SignUpScreen() {
     setBusy(false);
     // On success the guard moves the new user to the locked (pending) screen.
     if (failure) {
-      setError(t(`auth.errors.${failure}`));
+      setError(authErrorText(t, failure));
       if (failure === 'emailTaken' || failure === 'emailInvalid') setStepIndex(1);
     }
   };

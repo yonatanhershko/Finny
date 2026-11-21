@@ -18,6 +18,7 @@ import { useCategoryName, useMoney } from '@/data/hooks';
 import { useCategories, useRemoveCategory, useSaveCategory } from '@/data/queries';
 import { useRowAlign } from '@/i18n';
 import { PressScale } from '@/components/ui/PressScale';
+import { saveErrorKey } from '@/lib/network';
 
 type Draft = { id?: string; name: string; icon: string; color: string; budget: string };
 
@@ -70,8 +71,8 @@ export default function CategoriesScreen() {
         ...(draft.id ? {} : { sort_order: (list[list.length - 1]?.sort_order ?? 0) + 1 }),
       });
       setDraft(null);
-    } catch {
-      setError(t('common.errorGeneric'));
+    } catch (e) {
+      setError(t(saveErrorKey(e)));
     }
   };
 

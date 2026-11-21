@@ -1,6 +1,6 @@
 "use client";
 
-import type { Profile } from "@kaspilo/shared";
+import { callPasswordAuth, lockMinutes, type Profile } from "@kaspilo/shared";
 import {
   createContext,
   type ReactNode,
@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 
+import { env } from "@/lib/env";
 import { supabase } from "@/lib/supabase";
 
 type AdminAuthState =
@@ -72,15 +73,25 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
   const value: AdminAuthValue = {
     state,
+    // Through the auth-password Edge Function, like the app: the password lock
+    // applies here too (docs/spec.md "Sign-in").
     signIn: async (email, password) => {
-      const { error } = await supabase.auth.signInWithPassword({
+      const result = await callPasswordAuth(env.supabaseUrl, env.supabasePublishableKey, {
+        action: "sign-in",
         email: email.trim(),
         password,
       });
-      if (!error) return null;
-      return error.code === "invalid_credentials"
-        ? "Wrong email or password."
-        : "Couldn't sign in. Try again.";
+      if (result.ok && result.session) {
+        const { error } = await supabase.auth.setSession(result.session);
+        return error ? "Couldn't sign in. Try again." : null;
+      }
+      if (result.ok) return "Couldn't sign in. Try again.";
+      if (result.code === "locked") {
+        return `Too many wrong passwords. Try again in ${lockMinutes(result.retryAfter)} minutes, or reset the password in the app.`;
+      }
+      if (result.code === "invalid_credentials") return "Wrong email or password.";
+      if (result.status === 0) return "No connection. Try again.";
+      return "Couldn't sign in. Try again.";
     },
     signOut: async () => {
       await supabase.auth.signOut();

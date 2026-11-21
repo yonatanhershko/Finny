@@ -1,6 +1,7 @@
 # Every push and pull request to dev / main (docs/ci-cd.md).
 # Checks the code, scans for secrets, builds both apps, replays every migration on an
-# empty database and runs the DB tests there, and reads the Supabase advisors of dev.
+# empty database, serves the Edge Functions and runs the DB tests there, and reads the
+# Supabase advisors of dev.
 name: CI
 
 on:
@@ -36,6 +37,13 @@ jobs:
       - run: npm test
       - name: Hebrew and English keys match
         run: node scripts/ci/i18n-check.mjs
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Edge Functions type-check and lint
+        run: |
+          deno check supabase/functions/*/index.ts
+          deno lint supabase/functions
 
   dependencies:
     name: Dependency report
@@ -115,15 +123,28 @@ jobs:
       - name: Supabase project files
         run: test -f supabase/config.toml || supabase init
       - name: Start a local Supabase (applies every migration in file order)
-        run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,realtime,storage-api,postgres-meta
+        run: supabase start -x studio,imgproxy,logflare,vector,supavisor,realtime,storage-api,postgres-meta
+      - name: Serve the Edge Functions (throwaway server secret)
+        run: |
+          echo "AUTH_PASSWORD_PEPPER=$(openssl rand -hex 32)" > supabase/functions/.env
+          nohup supabase functions serve --no-verify-jwt --env-file supabase/functions/.env > "$RUNNER_TEMP/functions.log" 2>&1 &
+          for i in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' -X OPTIONS http://127.0.0.1:54321/functions/v1/auth-password || true)
+            [ "$code" = "200" ] && echo "auth-password is up" && exit 0
+            sleep 2
+          done
+          echo "auth-password did not start"; cat "$RUNNER_TEMP/functions.log"; exit 1
       - name: Lint database functions
         run: supabase db lint --level error
       - name: Seed test users
         run: |
           supabase status -o env | sed -E 's/^([A-Z_]+)="?([^"]*)"?$/\1=\2/' >> "$GITHUB_ENV"
       - run: node supabase/tests/ci-setup.mjs
-      - name: DB tests (RLS, access, money)
+      - name: DB tests (money, access, password lock, request limits)
         run: npm run test:db
+      - name: Edge Function log
+        if: failure()
+        run: cat "$RUNNER_TEMP/functions.log" || true
       - if: always()
         run: supabase stop --no-backup
 
