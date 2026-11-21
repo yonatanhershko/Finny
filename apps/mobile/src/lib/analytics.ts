@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { AnalyticsEventName } from '@kaspilo/shared';
 import Constants from 'expo-constants';
-import { randomUUID } from 'expo-crypto';
+import { randomUUID } from '@/lib/uuid';
 import { Platform } from 'react-native';
 
 import { nativeApplicationVersion } from '@/lib/nativeApp';

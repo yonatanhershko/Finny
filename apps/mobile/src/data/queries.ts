@@ -22,7 +22,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { subMonths } from 'date-fns/subMonths';
-import { randomUUID } from 'expo-crypto';
+import { randomUUID } from '@/lib/uuid';
 import { useMemo } from 'react';
 
 import { isOnline, isTransient, OfflineError, RateLimitError } from '@/lib/network';

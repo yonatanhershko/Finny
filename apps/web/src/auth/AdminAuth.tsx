@@ -1,6 +1,6 @@
 "use client";
 
-import { callPasswordAuth, lockMinutes, type Profile } from "@kaspilo/shared";
+import { callPasswordAuth, lockMinutes, type PasswordAuthRequest, type Profile } from "@kaspilo/shared";
 import {
   createContext,
   type ReactNode,
@@ -22,8 +22,46 @@ type AdminAuthValue = {
   state: AdminAuthState;
   /** Returns an error message to show, or null on success. */
   signIn: (email: string, password: string) => Promise<string | null>;
+  /** Sends a 6-digit reset code. Same answer for an email with no account. */
+  requestPasswordReset: (email: string) => Promise<string | null>;
+  /** Checks the code, sets the new password and signs in. Error message or null. */
+  resetPassword: (email: string, code: string, newPassword: string) => Promise<string | null>;
   signOut: () => Promise<void>;
 };
+
+/** The message for an auth error, in the same words as the app (English only). */
+function errorText(code: string | undefined, status: number | undefined, retryAfter?: number): string {
+  switch (code) {
+    case "invalid_credentials":
+      return "Wrong email or password.";
+    case "locked":
+      return `Too many wrong passwords. Try again in ${lockMinutes(retryAfter)} minutes, or reset your password.`;
+    case "otp_expired":
+    case "otp_disabled":
+      return "That code is wrong or has expired. Send a new one.";
+    case "over_email_send_rate_limit":
+    case "over_request_rate_limit":
+      return "Too many tries. Wait a few minutes and try again.";
+    case "password_leaked":
+      return "This password appeared in a data leak. Choose another.";
+    case "weak_password":
+      return "That password is too weak. Choose another.";
+    case "validation_failed":
+    case "email_address_invalid":
+      return "That email address isn't valid.";
+    default:
+      return status === undefined || status === 0 ? "No connection. Try again." : "Something went wrong. Try again.";
+  }
+}
+
+/** Runs a password action through `auth-password` and starts the session it returns. */
+async function passwordAction(request: PasswordAuthRequest): Promise<string | null> {
+  const result = await callPasswordAuth(env.supabaseUrl, env.supabasePublishableKey, request);
+  if (!result.ok) return errorText(result.code, result.status, result.retryAfter);
+  if (!result.session) return "Something went wrong. Try again.";
+  const { error } = await supabase.auth.setSession(result.session);
+  return error ? "Something went wrong. Try again." : null;
+}
 
 const AdminAuthContext = createContext<AdminAuthValue | null>(null);
 
@@ -75,24 +113,13 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     state,
     // Through the auth-password Edge Function, like the app: the password lock
     // applies here too (docs/spec.md "Sign-in").
-    signIn: async (email, password) => {
-      const result = await callPasswordAuth(env.supabaseUrl, env.supabasePublishableKey, {
-        action: "sign-in",
-        email: email.trim(),
-        password,
-      });
-      if (result.ok && result.session) {
-        const { error } = await supabase.auth.setSession(result.session);
-        return error ? "Couldn't sign in. Try again." : null;
-      }
-      if (result.ok) return "Couldn't sign in. Try again.";
-      if (result.code === "locked") {
-        return `Too many wrong passwords. Try again in ${lockMinutes(result.retryAfter)} minutes, or reset the password in the app.`;
-      }
-      if (result.code === "invalid_credentials") return "Wrong email or password.";
-      if (result.status === 0) return "No connection. Try again.";
-      return "Couldn't sign in. Try again.";
+    signIn: (email, password) => passwordAction({ action: "sign-in", email: email.trim(), password }),
+    requestPasswordReset: async (email) => {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+      return error ? errorText(error.code, error.status) : null;
     },
+    resetPassword: (email, code, newPassword) =>
+      passwordAction({ action: "reset", email: email.trim(), password: newPassword, code: code.trim() }),
     signOut: async () => {
       await supabase.auth.signOut();
     },
