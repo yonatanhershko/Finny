@@ -12,7 +12,7 @@
  */
 import { execFileSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
@@ -69,6 +69,7 @@ writeFileSync(
   root + '/apps/web/.env.development',
   `NEXT_PUBLIC_APP_ENV=development\nNEXT_PUBLIC_SUPABASE_URL=${apiUrl}\nNEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${publishable}\n`,
 );
+mkdirSync(root + '/supabase/seed', { recursive: true });
 writeFileSync(
   root + '/supabase/seed/dev-users.local.md',
   `# CI test users (throwaway local Supabase)\n\n| role | name | email | password |\n| --- | --- | --- | --- |\n${rows.join('\n')}\n`,
