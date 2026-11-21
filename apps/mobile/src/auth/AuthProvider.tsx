@@ -1,4 +1,4 @@
-import { hasAccess, type Profile } from '@finny/shared';
+import { hasAccess, type Profile } from '@kaspilo/shared';
 import { isAuthRetryableFetchError, type Session } from '@supabase/supabase-js';
 import { createContext, type ReactNode, use, useCallback, useEffect, useState } from 'react';
 import { AppState } from 'react-native';

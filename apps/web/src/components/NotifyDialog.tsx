@@ -1,6 +1,6 @@
 "use client";
 
-import type { NotificationKind } from "@finny/shared";
+import type { NotificationKind } from "@kaspilo/shared";
 import { useEffect, useId, useRef, useState } from "react";
 
 import {

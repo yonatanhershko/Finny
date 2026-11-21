@@ -1,5 +1,5 @@
 /**
- * Database types for the Finny Supabase schema.
+ * Database types for the Kaspilo Supabase schema.
  * Source of truth is supabase/migrations. After a schema change, regenerate
  * (Supabase "generate TypeScript types") and bring this file in line.
  */

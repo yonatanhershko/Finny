@@ -1,4 +1,4 @@
-import type { GoalDeposit } from '@finny/shared';
+import type { GoalDeposit } from '@kaspilo/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
@@ -63,7 +63,7 @@ export default function HistoryScreen() {
         savings: t('goals.savings'),
       },
       );
-      const shared = await shareCsv(csv, 'finny-transactions.csv');
+      const shared = await shareCsv(csv, 'kaspilo-transactions.csv');
       setMessage(shared ? t('export.done') : t('export.unavailable'));
     } catch {
       setMessage(t('export.failed'));

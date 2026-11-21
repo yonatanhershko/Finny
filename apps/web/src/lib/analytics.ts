@@ -1,4 +1,4 @@
-import type { AnalyticsDay, AnalyticsReport } from "@finny/shared";
+import type { AnalyticsDay, AnalyticsReport } from "@kaspilo/shared";
 
 import { supabase } from "@/lib/supabase";
 
@@ -125,7 +125,7 @@ export function downloadCsv(days: AnalyticsDay[], range: Range) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `finny-analytics-${rangeKey(range)}.csv`;
+  a.download = `kaspilo-analytics-${rangeKey(range)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 }

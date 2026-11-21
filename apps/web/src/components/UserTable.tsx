@@ -1,6 +1,6 @@
 "use client";
 
-import type { AccessMonths, AccessPlan, Profile } from "@finny/shared";
+import type { AccessMonths, AccessPlan, Profile } from "@kaspilo/shared";
 import { useState } from "react";
 
 import {

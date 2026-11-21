@@ -1,4 +1,4 @@
-import { advisorWhatsAppUrl } from '@finny/shared';
+import { advisorWhatsAppUrl } from '@kaspilo/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking, View } from 'react-native';

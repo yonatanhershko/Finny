@@ -1,4 +1,4 @@
-import { amountToInput, parseAmount, type RepeatFrequency, splitInstallments, todayISO } from '@finny/shared';
+import { amountToInput, parseAmount, type RepeatFrequency, splitInstallments, todayISO } from '@kaspilo/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';

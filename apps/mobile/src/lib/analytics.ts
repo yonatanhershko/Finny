@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { AnalyticsEventName } from '@finny/shared';
+import type { AnalyticsEventName } from '@kaspilo/shared';
 import Constants from 'expo-constants';
 import { randomUUID } from 'expo-crypto';
 import { Platform } from 'react-native';
@@ -22,9 +22,9 @@ type Queued = {
   userId: string | null;
 };
 
-const DEVICE_KEY = 'finny.analytics.device';
-const QUEUE_KEY = 'finny.analytics.queue';
-const enteredKey = (userId: string) => `finny.analytics.entered.${userId}`;
+const DEVICE_KEY = 'kaspilo.analytics.device';
+const QUEUE_KEY = 'kaspilo.analytics.queue';
+const enteredKey = (userId: string) => `kaspilo.analytics.entered.${userId}`;
 const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const APP_OPEN_GAP_MS = 30 * 60 * 1000;
 const MAX_QUEUE = 200;

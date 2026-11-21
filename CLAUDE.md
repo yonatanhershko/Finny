@@ -1,4 +1,4 @@
-# Finny
+# Kaspilo
 
 Personal-finance mobile app (Expo) + admin web dashboard (Next.js) on one Supabase database.
 Access is a yearly subscription paid by Bit and approved by hand by an admin.

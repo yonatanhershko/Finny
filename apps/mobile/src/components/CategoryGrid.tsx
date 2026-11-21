@@ -1,5 +1,5 @@
-import { categoryPalette } from '@finny/tokens';
-import type { Category, TransactionType } from '@finny/shared';
+import { categoryPalette } from '@kaspilo/tokens';
+import type { Category, TransactionType } from '@kaspilo/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, View } from 'react-native';

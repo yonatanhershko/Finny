@@ -1,4 +1,4 @@
-import type { AccessPlan, AccountStatus } from "@finny/shared";
+import type { AccessPlan, AccountStatus } from "@kaspilo/shared";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 import { planShort, statusLabel } from "@/lib/format";

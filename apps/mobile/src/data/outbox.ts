@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { CategoryTotal, Transaction, TransactionType } from '@finny/shared';
+import type { CategoryTotal, Transaction, TransactionType } from '@kaspilo/shared';
 import { notifyManager, type QueryClient } from '@tanstack/react-query';
 import { useSyncExternalStore } from 'react';
 

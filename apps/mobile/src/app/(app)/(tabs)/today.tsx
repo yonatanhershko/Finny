@@ -1,4 +1,4 @@
-import { budgetRemaining, type Category, percentOf, periodBalance } from '@finny/shared';
+import { budgetRemaining, type Category, percentOf, periodBalance } from '@kaspilo/shared';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';

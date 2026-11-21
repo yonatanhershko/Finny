@@ -25,15 +25,15 @@ export type PermissionState = 'granted' | 'denied' | 'undetermined' | 'unsupport
 export const NOTIFICATION_ROUTES = ['/renew', '/today'] as const;
 export type NotificationRoute = (typeof NOTIFICATION_ROUTES)[number];
 
-const PREFS_KEY = 'finny.notifications';
-const ASKED_KEY = 'finny.notifications.asked';
-const TOKEN_KEY = 'finny.notifications.token';
+const PREFS_KEY = 'kaspilo.notifications';
+const ASKED_KEY = 'kaspilo.notifications.asked';
+const TOKEN_KEY = 'kaspilo.notifications.token';
 const CHANNEL_ID = 'default';
 
 /** Days after the last app open, and the hour of day, for the inactivity reminders. */
 const INACTIVITY_DAYS = [4, 14, 24] as const;
 const INACTIVITY_HOUR = 19;
-const inactivityId = (index: number) => `finny-inactive-${index + 1}`;
+const inactivityId = (index: number) => `kaspilo-inactive-${index + 1}`;
 
 // Expo Go on Android lacks a native module expo-notifications loads, so there it is not loaded at all.
 export const notificationsSupported = Platform.OS !== 'web' && hasApplicationModule;
@@ -147,7 +147,7 @@ export async function configureNotifications(): Promise<void> {
     });
     if (Platform.OS === 'android') {
       await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
-        name: 'Finny',
+        name: 'Kaspilo',
         importance: Notifications.AndroidImportance.DEFAULT,
       });
     }

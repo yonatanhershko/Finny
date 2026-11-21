@@ -1,5 +1,5 @@
-import { amountToInput, type Category, parseAmount, type TransactionType } from '@finny/shared';
-import { categoryPalette } from '@finny/tokens';
+import { amountToInput, type Category, parseAmount, type TransactionType } from '@kaspilo/shared';
+import { categoryPalette } from '@kaspilo/tokens';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';

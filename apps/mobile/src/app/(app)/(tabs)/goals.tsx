@@ -1,4 +1,4 @@
-import { parseAmount, percentOf } from '@finny/shared';
+import { parseAmount, percentOf } from '@kaspilo/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';

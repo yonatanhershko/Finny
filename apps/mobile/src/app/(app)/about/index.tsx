@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { type ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking, View } from 'react-native';
 
@@ -12,7 +12,7 @@ import { Screen } from '@/components/ui/Screen';
 import { useRowAlign } from '@/i18n';
 import { appVersionLabel, openWriteReview, writeReviewUrl } from '@/lib/review';
 
-const CONTACT_EMAIL = 'yonher8@gmail.com';
+const CONTACT_EMAIL = 'MyKaspilo@gmail.com';
 
 /** More → About. Rules: docs/spec.md "About and app review". */
 export default function AboutScreen() {
@@ -20,6 +20,17 @@ export default function AboutScreen() {
   const align = useRowAlign();
   const chevron = align.he ? 'chevron-left' : 'chevron-right';
   const canRate = writeReviewUrl() !== null;
+  const [mailFailed, setMailFailed] = useState(false);
+
+  // No mail app on the phone (or on the simulator): opening fails, so show where to write instead.
+  const writeEmail = async () => {
+    try {
+      await Linking.openURL(`mailto:${CONTACT_EMAIL}`);
+      setMailFailed(false);
+    } catch {
+      setMailFailed(true);
+    }
+  };
 
   const row = (icon: string, label: string, onPress: () => void, value?: ReactNode, hint?: string) => (
     <PressScale
@@ -43,8 +54,10 @@ export default function AboutScreen() {
     row(
       'email-outline',
       t('about.contact'),
-      () => void Linking.openURL(`mailto:${CONTACT_EMAIL}`),
-      undefined,
+      () => void writeEmail(),
+      <AppText selectable tone="muted" className="text-[14px]">
+        {CONTACT_EMAIL}
+      </AppText>,
       t('about.opensMail'),
     ),
   ];
@@ -70,6 +83,12 @@ export default function AboutScreen() {
           </View>
         ))}
       </View>
+
+      {mailFailed && (
+        <AppText tone="muted" accessibilityLiveRegion="polite" className="mt-3 text-[14px] leading-5">
+          {t('about.noMailApp', { email: CONTACT_EMAIL })}
+        </AppText>
+      )}
 
       <AppText tone="muted" className="mt-6 text-center text-[13px]">
         {t('about.version', { version: appVersionLabel() })}

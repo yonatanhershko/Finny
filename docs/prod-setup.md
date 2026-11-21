@@ -1,6 +1,6 @@
 # Where the prod keys go
 
-Dev and prod never share a key. The prod Supabase project is "Finny Prod". Get its values from the Supabase dashboard → Project Settings → API keys.
+Dev and prod never share a key. The prod Supabase project is "Kaspilo Prod". Get its values from the Supabase dashboard → Project Settings → API keys.
 
 You need two values for the apps:
 
@@ -53,7 +53,7 @@ set role = 'admin', status = 'active', plan = 'family', approved_at = now(), exp
 where email = 'your-email@example.com';
 ```
 
-In Supabase Auth settings for prod: turn "Confirm email" off (the app does not send confirmation emails), and add `finny://` to the allowed redirect URLs.
+In Supabase Auth settings for prod: turn "Confirm email" off (the app does not send confirmation emails), and add `kaspilo://` to the allowed redirect URLs.
 
 ## 4. Push notifications
 
@@ -67,7 +67,7 @@ Run through `evals/prod-readiness.md`. Rotate the dev secret key that was pasted
 
 The app asks for the email, then a 6-digit code plus a new password. Supabase must send the code, not a link:
 
-1. Supabase → Authentication → Emails → Templates → **Reset Password**. Put `{{ .Token }}` in the body, for example: `Your Finny code: {{ .Token }}`. The default template has only a link.
+1. Supabase → Authentication → Emails → Templates → **Reset Password**. Put `{{ .Token }}` in the body, for example: `Your Kaspilo code: {{ .Token }}`. The default template has only a link.
 2. Supabase → Authentication → SMTP Settings → turn on **custom SMTP**. The built-in sender only mails project team members and allows a few mails per hour, so real clients never get the code.
    - Free option: Resend (3,000 mails/month; needs a domain you own) or Brevo (300/day).
 3. Do this for the dev project to test, and again for prod.

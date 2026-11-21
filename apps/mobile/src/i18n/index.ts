@@ -15,7 +15,7 @@ import he from './he.json';
 const i18n = createInstance();
 
 export const languages: Language[] = ['he', 'en'];
-const RELOAD_MARK_KEY = 'finny.dirReload';
+const RELOAD_MARK_KEY = 'kaspilo.dirReload';
 
 /** Hebrew phone -> Hebrew. Any other phone language -> English. */
 export function deviceLanguage(): Language {

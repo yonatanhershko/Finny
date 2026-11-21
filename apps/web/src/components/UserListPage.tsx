@@ -1,6 +1,6 @@
 "use client";
 
-import type { AccountStatus } from "@finny/shared";
+import type { AccountStatus } from "@kaspilo/shared";
 import { useState } from "react";
 
 import { fetchProfiles, PAGE_SIZE } from "@/lib/admin-api";

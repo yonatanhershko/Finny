@@ -10,7 +10,7 @@ import type {
   TransactionType,
   UserSettings,
   Wallet,
-} from '@finny/shared';
+} from '@kaspilo/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { randomUUID } from 'expo-crypto';
 import { useMemo } from 'react';

@@ -1,4 +1,4 @@
-import { amountToInput, budgetRemaining, parseAmount } from '@finny/shared';
+import { amountToInput, budgetRemaining, parseAmount } from '@kaspilo/shared';
 import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';

@@ -1,4 +1,4 @@
-import { fromISODate, type ISODate, toISODate, todayISO } from '@finny/shared';
+import { fromISODate, type ISODate, toISODate, todayISO } from '@kaspilo/shared';
 import { addMonths, getDay, getDaysInMonth, startOfMonth } from 'date-fns';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';

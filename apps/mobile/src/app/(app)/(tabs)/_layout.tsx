@@ -5,7 +5,7 @@ import { PanResponder, View } from "react-native";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { FinnyTabBar } from "@/components/ui/FinnyTabBar";
+import { KaspiloTabBar } from "@/components/ui/KaspiloTabBar";
 import {
   TAB_BAR_CONTENT_HEIGHT,
   TabBarHeightContext,
@@ -64,12 +64,12 @@ export default function TabsLayout() {
     <TabBarHeightContext value={barHeight}>
       <View style={{ flex: 1 }} {...swipe}>
         <Tabs
-          tabBar={(props) => <FinnyTabBar {...props} icons={tabIcons} />}
+          tabBar={(props) => <KaspiloTabBar {...props} icons={tabIcons} />}
           screenOptions={{
             headerShown: false,
             // Soft cross-fade when moving between tabs.
             animation: "fade",
-            // The bar is absolute (FinnyTabBar): screens and their leaves run under it.
+            // The bar is absolute (KaspiloTabBar): screens and their leaves run under it.
             sceneStyle: { backgroundColor: colors.background },
           }}
         >

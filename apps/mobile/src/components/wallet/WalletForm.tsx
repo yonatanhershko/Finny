@@ -1,5 +1,5 @@
-import { categoryPalette } from '@finny/tokens';
-import type { Wallet } from '@finny/shared';
+import { categoryPalette } from '@kaspilo/tokens';
+import type { Wallet } from '@kaspilo/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';

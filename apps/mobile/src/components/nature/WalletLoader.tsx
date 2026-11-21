@@ -1,4 +1,4 @@
-import { walletPalette as c } from '@finny/tokens';
+import { walletPalette as c } from '@kaspilo/tokens';
 import { type ReactNode, useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {

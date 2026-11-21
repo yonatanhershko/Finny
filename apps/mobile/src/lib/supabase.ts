@@ -1,4 +1,4 @@
-import type { Database } from '@finny/shared';
+import type { Database } from '@kaspilo/shared';
 import { createClient } from '@supabase/supabase-js';
 import { AppState, Platform } from 'react-native';
 

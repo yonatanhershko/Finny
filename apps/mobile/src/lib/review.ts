@@ -17,7 +17,7 @@ const ASK_DELAY_MS = 900;
 
 type ReviewState = { firstOpen: number; saved: number; lastAsked: number | null };
 
-const key = (userId: string) => `finny.review.${userId}`;
+const key = (userId: string) => `kaspilo.review.${userId}`;
 
 async function load(userId: string): Promise<ReviewState | null> {
   try {

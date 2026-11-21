@@ -32,7 +32,7 @@ export default function LoginPage() {
         className="w-full max-w-sm space-y-4 rounded-2xl border border-border bg-surface p-8"
       >
         <div>
-          <h1 className="text-2xl font-bold text-primary">Finny Admin</h1>
+          <h1 className="text-2xl font-bold text-primary">Kaspilo Admin</h1>
           <p className="text-sm text-text-muted">Sign in with an admin account.</p>
         </div>
         <label className="block space-y-1 text-sm">

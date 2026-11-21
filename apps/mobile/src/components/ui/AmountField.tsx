@@ -1,4 +1,4 @@
-import { currencySymbol } from '@finny/shared';
+import { currencySymbol } from '@kaspilo/shared';
 import { type ComponentRef, useRef } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 

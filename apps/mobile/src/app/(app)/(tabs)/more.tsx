@@ -1,4 +1,4 @@
-import { amountToInput, type Currency, currencySymbol, parseAmount } from '@finny/shared';
+import { amountToInput, type Currency, currencySymbol, parseAmount } from '@kaspilo/shared';
 import { router } from 'expo-router';
 import { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';

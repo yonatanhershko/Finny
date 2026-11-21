@@ -1,4 +1,4 @@
-import type { Category, Goal, GoalDeposit, Transaction, Wallet } from '@finny/shared';
+import type { Category, Goal, GoalDeposit, Transaction, Wallet } from '@kaspilo/shared';
 import { useTranslation } from 'react-i18next';
 
 import { useCategoryName, useWalletName } from '@/data/hooks';
@@ -50,6 +50,6 @@ export function useExportWallet() {
       },
     );
     const safe = walletName(wallet).replace(/[\\/:*?"<>|\s]+/g, '-');
-    return shareCsv(csv, `finny-${safe}.csv`);
+    return shareCsv(csv, `kaspilo-${safe}.csv`);
   };
 }

@@ -24,7 +24,7 @@ const SLIDE_MS = 320;
  * Bottom tabs: icons only, and a soft pill slides to the chosen tab (owner 2026-11-18).
  * With "reduce motion" the pill jumps.
  */
-export function FinnyTabBar({
+export function KaspiloTabBar({
   state,
   descriptors,
   emitter,

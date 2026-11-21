@@ -1,6 +1,6 @@
 "use client";
 
-import type { AnalyticsDay, PlatformSplit, RetentionCohort } from "@finny/shared";
+import type { AnalyticsDay, PlatformSplit, RetentionCohort } from "@kaspilo/shared";
 import { useEffect, useState } from "react";
 import {
   Area,
@@ -40,11 +40,11 @@ function useChartColors() {
     const css = typeof window === "undefined" ? null : getComputedStyle(document.documentElement);
     const v = (name: string) => css?.getPropertyValue(name).trim() || "currentColor";
     return {
-      primary: v("--finny-primary"),
-      accent: v("--finny-accent"),
-      muted: v("--finny-text-muted"),
-      border: v("--finny-border"),
-      surfaceMuted: v("--finny-surface-muted"),
+      primary: v("--kaspilo-primary"),
+      accent: v("--kaspilo-accent"),
+      muted: v("--kaspilo-text-muted"),
+      border: v("--kaspilo-border"),
+      surfaceMuted: v("--kaspilo-surface-muted"),
     };
   };
   const [colors, setColors] = useState(read);
@@ -67,13 +67,13 @@ type ChartColors = ReturnType<typeof useChartColors>;
 const axis = (c: ChartColors) => ({ fontSize: 11, fill: c.muted });
 const tooltip = {
   contentStyle: {
-    background: "var(--finny-surface)",
-    border: "1px solid var(--finny-border)",
+    background: "var(--kaspilo-surface)",
+    border: "1px solid var(--kaspilo-border)",
     borderRadius: 10,
     fontSize: 12,
-    color: "var(--finny-text)",
+    color: "var(--kaspilo-text)",
   },
-  labelStyle: { color: "var(--finny-text)", fontWeight: 500 },
+  labelStyle: { color: "var(--kaspilo-text)", fontWeight: 500 },
 };
 
 /** Growth, use and engagement. Never money (docs/spec.md "Analytics"). */

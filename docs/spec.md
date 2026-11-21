@@ -1,4 +1,6 @@
-# Finny spec — approved decisions
+# Kaspilo spec — approved decisions
+
+- App name (owner 2026-11-20): **Kaspilo** in both languages (was Finny). Contact email MyKaspilo@gmail.com. Bundle id / package `com.kaspilo.app` (dev `com.kaspilo.app.dev`), deep link schemes `kaspilo://` / `kaspilo-dev://`. Internal names were renamed too, before any real user existed (2026-11-20): packages `@kaspilo/*`, phone storage keys `kaspilo.*` (dev phones lose their saved theme, language and offline cache once), CSS variables, cron jobs `kaspilo-*`. Still `finny`, because they cannot or need not change: the Google Cloud project ID `finny-f9dba`, dev test users `@finny.test`, the local Android emulator `finny_pixel`, and migrations written before the rename.
 
 Decided by the owner on 2026-11-13. Lines marked **(assumed)** were proposed by Claude and not yet confirmed; confirm or change them before the phase that uses them.
 
@@ -27,7 +29,7 @@ Init → Phase 1 infra → Phase 5 tokens / theme / i18n / leaf art → Phase 2 
 - Renew / extend: new expiry = old `expires_at` + chosen length if still active, otherwise now + chosen length.
 - Rejected users can submit again (status back to `pending_approval`).
 - Expired users keep all data; the app is locked until an admin approves again.
-- Refund (owner 2026-11-15): cancel within 14 days of payment (Consumer Protection Law), refund minus the lower of 5% or ₪100, sent by Bit within 14 days. No refund after 14 days. If Finny shuts down, the unused part is refunded pro rata. Done by hand by the admin, no app flow.
+- Refund (owner 2026-11-15): cancel within 14 days of payment (Consumer Protection Law), refund minus the lower of 5% or ₪100, sent by Bit within 14 days. No refund after 14 days. If Kaspilo shuts down, the unused part is refunded pro rata. Done by hand by the admin, no app flow.
 - No age limit. Under 18 needs a parent's consent to pay (stated in the terms).
 - A blocked user can get their data export by emailing the owner; the in-app export needs access.
 - Daily job: past expiry → status `expired`. Renewal reminders: see "Notifications".
@@ -40,9 +42,9 @@ Init → Phase 1 infra → Phase 5 tokens / theme / i18n / leaf art → Phase 2 
 - Sign-up has three steps: name, email, password. Earlier steps show as rows with a pencil, so the user can jump back and change the name or email. Under the email field is a "Terms of use" tab: tap it, press "I agree" (pinned at the bottom, no need to scroll to the end), and the tab turns green. Continue stays locked until then. No checkbox. The accepted version and time are saved on the auth user (`terms_version`, `terms_accepted_at`). (owner 2026-11-14, no-scroll 2026-11-15)
 - Sign-up step bar (owner 2026-11-20): three short bars; done steps are green. In Hebrew the first bar is at the right and they fill leftward; in English they fill from the left.
 - Loading screen (owner 2026-11-20): background follows the user's saved light/dark choice, or the phone's setting when it is "system" or not read yet. The native splash before it can only follow the phone's setting (light and dark versions).
-- Terms of use: Hebrew + English text in the app i18n files, version `2026-11-18` (usage-data line added 2026-11-18; earlier text approved by the owner 2026-11-15). Bump `TERMS_VERSION` when the text changes. Operator shown as the owner's private name until a business is registered. Contact: email only. Subscription length is not fixed in the terms: price and length are given to the user before payment (WhatsApp / phone / email, not shown in the app); the operator may grant free or non-expiring access (vip / family).
+- Terms of use: Hebrew + English text in the app i18n files, version `2026-11-20` (name Kaspilo and contact email changed 2026-11-20; usage-data line added 2026-11-18; earlier text approved by the owner 2026-11-15). Bump `TERMS_VERSION` when the text changes. Operator shown as the owner's private name until a business is registered. Contact: email only. Subscription length is not fixed in the terms: price and length are given to the user before payment (WhatsApp / phone / email, not shown in the app); the operator may grant free or non-expiring access (vip / family).
 - Forgot password: from sign-in. Email → 6-digit code sent by email → code + new password. No OTP at sign-up (the admin approval is the gate; clients are personal, a few per month). Needs custom SMTP and a code template, see `docs/prod-setup.md`. (owner 2026-11-14)
-- Google sign-in (owner 2026-11-16): one "Continue with Google" button on the sign-in screen, under the password form; it signs in an existing user or creates a new one. On the phone it uses Google's native sign-in sheet (shows "Finny", not the Supabase address) and Supabase checks the ID token; web and Expo Go fall back to Supabase hosted Google OAuth in the browser, back to `<scheme>://auth-callback`. One Google OAuth web client serves dev and prod (owner 2026-11-17). Name comes from Google. A new Google user never saw the sign-up terms tab, so the first sign-in opens the terms screen: "I agree" saves `terms_version` / `terms_accepted_at`, the other choice signs out. Then the usual locked screen until an admin approves. (terms gate and button placement chosen by Claude) Setup steps: `docs/google-sign-in.md`.
+- Google sign-in (owner 2026-11-16): one "Continue with Google" button on the sign-in screen, under the password form; it signs in an existing user or creates a new one. On the phone it uses Google's native sign-in sheet (shows "Kaspilo", not the Supabase address) and Supabase checks the ID token; web and Expo Go fall back to Supabase hosted Google OAuth in the browser, back to `<scheme>://auth-callback`. One Google OAuth web client serves dev and prod (owner 2026-11-17). Name comes from Google. A new Google user never saw the sign-up terms tab, so the first sign-in opens the terms screen: "I agree" saves `terms_version` / `terms_accepted_at`, the other choice signs out. Then the usual locked screen until an admin approves. (terms gate and button placement chosen by Claude) Setup steps: `docs/google-sign-in.md`.
 - Facebook sign-in: later, when the owner has the developer account.
 - Apple sign-in: not wanted. **Open issue, now live:** with Google sign-in on iOS, App Store guideline 4.8 asks for an equivalent privacy-focused login (Sign in with Apple), or review may reject the app. Decide before the first App Store submission: add Apple, or hide the Google button on iOS.
 
@@ -113,10 +115,10 @@ Decided by the owner 2026-11-17. Layout and details chosen by Claude from the ap
 
 Decided by the owner 2026-11-17. No effect on any amount, budget or stat.
 
-- **About:** the last row in More opens an About screen: the logo wallet, "Finny", two short lines on what the app is, Terms of use (read only, same text as at sign-up; the privacy policy is its section 9), Rate us, Contact, and the app version with build number at the bottom.
-- **Contact:** a line with the owner's email (yonher8@gmail.com); tapping it opens a new mail. No WhatsApp for now.
+- **About:** the last row in More opens an About screen: the logo wallet, "Kaspilo", two short lines on what the app is, Terms of use (read only, same text as at sign-up; the privacy policy is its section 9), Rate us, Contact, and the app version with build number at the bottom.
+- **Contact:** a line with the owner's email (MyKaspilo@gmail.com); tapping it opens a new mail. No WhatsApp for now.
 - **Rate us (About):** opens the store's write-a-review page (App Store / Google Play). Shown only once the store link is set in the app config; until the app is in the stores the row is hidden.
-- **Automatic review prompt:** the native in-app review dialog of iOS / Android, never our own "do you like Finny?" question first.
+- **Automatic review prompt:** the native in-app review dialog of iOS / Android, never our own "do you like Kaspilo?" question first.
   - When: right after a transaction is saved (back on home), or right after a goal deposit that reaches the goal's target.
   - Only if: at least 7 days since this user first opened the app on this phone, and at least 10 transactions saved on this phone.
   - At most once every 120 days (our own limit; Apple and Google add their own limits and may still show nothing).

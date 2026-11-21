@@ -1,6 +1,6 @@
 "use client";
 
-import type { Profile } from "@finny/shared";
+import type { Profile } from "@kaspilo/shared";
 import {
   createContext,
   type ReactNode,

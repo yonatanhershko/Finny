@@ -1,4 +1,4 @@
-import { colors as tokenColors } from '@finny/tokens';
+import { colors as tokenColors } from '@kaspilo/tokens';
 import { useColorScheme, View } from 'react-native';
 
 import type { ThemePreference } from '@/lib/preferences';
@@ -18,7 +18,7 @@ export function SplashScreenArt({ preference = 'system' }: { preference?: ThemeP
   const scheme = preference === 'light' || preference === 'dark' ? preference : phone;
   return (
     <View
-      accessibilityLabel="Finny"
+      accessibilityLabel="Kaspilo"
       style={{
         flex: 1,
         alignItems: 'center',
